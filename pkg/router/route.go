@@ -1,6 +1,8 @@
 package router
 
-import "net/http"
+import (
+	"regexp"
+)
 
 type Route struct {
 	Path          string
@@ -8,38 +10,28 @@ type Route struct {
 	Method        Method
 	HandlerFunc   HandlerFunc
 	DecoratorFunc DecoratorFunc
+
+	regexp *regexp.Regexp
 }
 
-func parseMethod(s string) Method {
-	switch s {
-	case "GET":
-		return Get
-	case "POST":
-		return Post
-	case "PUT":
-		return Put
-	case "PATCH":
-		return Patch
-	case "DELEET":
-		return Delete
-	case "HEAD":
-		return Head
-	case "OPTIONS":
-		return Options
-	default:
-		return Undefined
-	}
-}
-
-func (route *Route) Match(r *http.Request) bool {
-	m := parseMethod(r.Method)
-	if m != route.Method {
+func (route *Route) Match(c *Context) bool {
+	method := parseMethod(c.request.Method)
+	if method != route.Method {
 		return false
 	}
 
-	if r.URL.Path != string(route.Path)+string(route.Params) {
+	route.regexp = regexp.MustCompile("^" + route.Path + route.Params + "$")
+	match := route.regexp.FindStringSubmatch(c.request.URL.Path)
+	if match == nil {
 		return false
 	}
+
+	params := make(map[string]string)
+	groups := route.regexp.SubexpNames()
+	for i, group := range match {
+		params[groups[i]] = group
+	}
+	c.params = params
 
 	return true
 }

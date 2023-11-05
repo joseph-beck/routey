@@ -8,6 +8,10 @@ type Error struct {
 }
 
 var (
+	NilError = Error{
+		Message: "",
+		Error:   nil,
+	}
 	RenderError = Error{
 		Message: "Render Error Occurred",
 		Error:   errors.New("render error occurred"),

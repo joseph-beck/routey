@@ -1,15 +1,18 @@
 package router
 
 import (
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
 
 	errs "github.com/joseph-beck/routey/pkg/error"
 )
 
 type Context struct {
-	w http.ResponseWriter
-	r *http.Request
+	writer  http.ResponseWriter
+	request *http.Request
+	params  map[string]string
 }
 
 func (c *Context) Error(err errs.Error) {
@@ -17,13 +20,13 @@ func (c *Context) Error(err errs.Error) {
 }
 
 func (c *Context) Write(s string) (int, error) {
-	b, err := c.w.Write([]byte(s))
+	b, err := c.writer.Write([]byte(s))
 	return b, err
 }
 
 func (c *Context) Header(k string, v string) {
 	if v == "" {
-		c.w.Header().Del(k)
+		c.writer.Header().Del(k)
 		return
 	}
 
@@ -31,16 +34,16 @@ func (c *Context) Header(k string, v string) {
 		return
 	}
 
-	c.w.Header().Set(k, v)
+	c.writer.Header().Set(k, v)
 }
 
 func (c *Context) GetHeader(k string) string {
-	v := c.r.Header.Get(k)
+	v := c.request.Header.Get(k)
 	return v
 }
 
 func (c *Context) Status(s int) {
-	c.w.WriteHeader(s)
+	c.writer.WriteHeader(s)
 }
 
 func (c *Context) Render(s int, b string) {
@@ -50,4 +53,25 @@ func (c *Context) Render(s int, b string) {
 	if err != nil {
 		c.Error(errs.RenderError)
 	}
+}
+
+func (c *Context) Param(k string) (string, error) {
+	p, f := c.params[k]
+	if !f {
+		return "", errors.New("key not found")
+	}
+	return p, nil
+}
+
+func (c *Context) ParamInt(k string) (int, error) {
+	p, f := c.params[k]
+	if !f {
+		return 0, errors.New("key not found")
+	}
+
+	i, err := strconv.Atoi(p)
+	if err != nil {
+		return 0, err
+	}
+	return i, nil
 }
