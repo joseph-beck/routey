@@ -18,6 +18,15 @@ func main() {
 		},
 		DecoratorFunc: nil,
 	})
+	r.Route(routey.Route{
+		Path:   "/panic",
+		Params: "",
+		Method: routey.Get,
+		HandlerFunc: func(c *routey.Context) {
+			panic("this is a panic")
+		},
+		DecoratorFunc: nil,
+	})
 
 	r.Run()
 }

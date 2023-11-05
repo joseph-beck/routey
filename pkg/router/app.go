@@ -1,6 +1,9 @@
 package router
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 type App struct {
 	routes []Route
@@ -26,6 +29,14 @@ func (a *App) Get(p string, h HandlerFunc) {
 }
 
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer func() {
+		r := recover()
+		if r != nil {
+			log.Println("error occurred: ", r)
+			http.Error(w, "Oh Dear", http.StatusInternalServerError)
+		}
+	}()
+
 	for _, e := range a.routes {
 		m := e.Match(r)
 		if !m {
