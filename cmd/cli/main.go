@@ -77,6 +77,26 @@ func main() {
 		},
 		DecoratorFunc: nil,
 	})
+	// Test JSON
+	r.Route(routey.Route{
+		Path:   "/json",
+		Params: "",
+		Method: routey.Get,
+		HandlerFunc: func(c *routey.Context) {
+			type json struct {
+				Name string `json:"name"`
+				Body string `json:"body"`
+			}
+
+			j := json{
+				Name: "hello",
+				Body: "these are a lot of words.",
+			}
+
+			c.JSON(http.StatusOK, j)
+		},
+		DecoratorFunc: nil,
+	})
 
 	r.Run()
 }

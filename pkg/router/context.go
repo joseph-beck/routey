@@ -1,6 +1,7 @@
 package router
 
 import (
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -21,6 +22,11 @@ func (c *Context) Error(err errs.Error) {
 
 func (c *Context) Write(s string) (int, error) {
 	b, err := c.writer.Write([]byte(s))
+	return b, err
+}
+
+func (c *Context) WriteBytes(body []byte) (int, error) {
+	b, err := c.writer.Write(body)
 	return b, err
 }
 
@@ -53,6 +59,25 @@ func (c *Context) Render(s int, b string) {
 	if err != nil {
 		c.Error(errs.RenderError)
 	}
+}
+
+func (c *Context) RenderBytes(s int, b []byte) {
+	c.Status(s)
+
+	_, err := c.WriteBytes(b)
+	if err != nil {
+		c.Error(errs.RenderError)
+	}
+}
+
+func (c *Context) JSON(s int, body any) {
+	writeContentType(c.writer, jsonContentType)
+	j, err := json.Marshal(body)
+	if err != nil {
+		s = http.StatusBadRequest
+	}
+
+	c.RenderBytes(s, j)
 }
 
 func (c *Context) Param(k string) (string, error) {
