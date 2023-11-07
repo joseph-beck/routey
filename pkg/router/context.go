@@ -100,3 +100,13 @@ func (c *Context) ParamInt(k string) (int, error) {
 	}
 	return i, nil
 }
+
+func (c *Context) Query(k string) (string, error) {
+	q := c.request.URL.Query()
+	v := q[k]
+	if len(v) < 1 {
+		return "", errors.Join(errs.QueryError.Error, errors.New("unable to find"+k))
+	}
+
+	return v[0], nil
+}

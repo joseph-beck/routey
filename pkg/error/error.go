@@ -20,6 +20,10 @@ var (
 		Message: "Server Error Occurred",
 		Error:   errors.New("server error occurred"),
 	}
+	QueryError = Error{
+		Message: "Query Error Occurred",
+		Error:   errors.New("query error occurred"),
+	}
 )
 
 func New(m string, e error) Error {

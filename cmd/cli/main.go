@@ -97,6 +97,22 @@ func main() {
 		},
 		DecoratorFunc: nil,
 	})
+	// Test Query
+	r.Route(routey.Route{
+		Path:   "/query",
+		Params: "",
+		Method: routey.Get,
+		HandlerFunc: func(c *routey.Context) {
+			w, err := c.Query("word")
+			if err != nil {
+				c.Status(http.StatusBadRequest)
+				return
+			}
+
+			c.Render(http.StatusOK, w)
+		},
+		DecoratorFunc: nil,
+	})
 
 	r.Run()
 }
