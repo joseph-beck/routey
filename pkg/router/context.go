@@ -105,8 +105,23 @@ func (c *Context) Query(k string) (string, error) {
 	q := c.request.URL.Query()
 	v := q[k]
 	if len(v) < 1 {
-		return "", errors.Join(errs.QueryError.Error, errors.New("unable to find"+k))
+		return "", errors.Join(errs.QueryError.Error, errors.New("unable to find "+k))
 	}
 
 	return v[0], nil
+}
+
+func (c *Context) QueryInt(k string) (int, error) {
+	q := c.request.URL.Query()
+	v := q[k]
+	if len(v) < 1 {
+		return 0, errors.Join(errs.QueryError.Error, errors.New("unable to find "+k))
+	}
+
+	i, err := strconv.Atoi(v[0])
+	if err != nil {
+		return 0, err
+	}
+
+	return i, nil
 }
