@@ -9,6 +9,7 @@ import (
 
 func main() {
 	r := routey.New()
+	go r.Shutdown()
 	// Test route that returns some http.
 	r.Route(routey.Route{
 		Path:   "/",

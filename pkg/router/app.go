@@ -1,18 +1,28 @@
 package router
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+
+	logr "github.com/sirupsen/logrus"
 )
 
 type App struct {
 	routes []Route
 	port   string
+
+	logger *logr.Logger
 }
 
 func New() *App {
 	return &App{
 		port: ":8080",
+
+		logger: logr.New(),
 	}
 }
 
@@ -113,5 +123,28 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) Run() {
+	a.logger.WithFields(logr.Fields{
+		"State": "Loading",
+	}).Info("Loading app...")
 	http.ListenAndServe(a.port, a)
+}
+
+func (a *App) Shutdown() {
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+
+	<-stop
+	fmt.Print("\r")
+
+	a.logger.WithFields(logr.Fields{
+		"State": "Closing",
+	}).Info("Closing app...")
+
+	// Closing down stuffs
+
+	a.logger.WithFields(logr.Fields{
+		"State": "Exit",
+	}).Info("Closed app")
+
+	os.Exit(0)
 }
