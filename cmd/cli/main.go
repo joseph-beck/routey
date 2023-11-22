@@ -11,6 +11,7 @@ func main() {
 	r := routey.New()
 	go r.Shutdown()
 	// Test route that returns some http.
+
 	r.Route(routey.Route{
 		Path:   "/",
 		Params: "",
@@ -19,7 +20,12 @@ func main() {
 			b := "<h1>Healthy</h1>"
 			c.Render(http.StatusOK, b)
 		},
-		DecoratorFunc: nil,
+		DecoratorFunc: func(f routey.HandlerFunc) routey.HandlerFunc {
+			return func(c *routey.Context) {
+				fmt.Println("hello world!")
+				f(c)
+			}
+		},
 	})
 	// Test error route
 	r.Route(routey.Route{

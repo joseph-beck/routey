@@ -115,7 +115,11 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 
-		e.HandlerFunc.Serve(c)
+		if e.DecoratorFunc == nil {
+			e.HandlerFunc.Serve(c)
+			return
+		}
+		e.DecoratorFunc(e.HandlerFunc).Serve(c)
 		return
 	}
 
