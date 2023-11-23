@@ -8,9 +8,21 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/joseph-beck/routey/pkg/binding"
 	errs "github.com/joseph-beck/routey/pkg/error"
 )
 
+// A Context provides
+//
+//   - writer: write data back to the user
+//
+//   - request: request data that was given
+//
+//   - params: the parameters of the request
+//
+//   - queryCache: a cache of queries for this request
+//
+//   - queryCached: has the queryCache been made?
 type Context struct {
 	writer  http.ResponseWriter
 	request *http.Request
@@ -20,20 +32,24 @@ type Context struct {
 	queryCached bool
 }
 
+// Log an error to console
 func (c *Context) ErrorLog(err errs.Error) {
 	log.Println(err.String())
 }
 
+// Write a string
 func (c *Context) Write(s string) (int, error) {
 	b, err := c.writer.Write([]byte(s))
 	return b, err
 }
 
+// Write bytes
 func (c *Context) WriteBytes(body []byte) (int, error) {
 	b, err := c.writer.Write(body)
 	return b, err
 }
 
+// Add to the header of a response with a key and value
 func (c *Context) Header(k string, v string) {
 	if k == "" {
 		return
@@ -47,15 +63,18 @@ func (c *Context) Header(k string, v string) {
 	c.writer.Header().Set(k, v)
 }
 
+// Get the header of a request using a key
 func (c *Context) GetHeader(k string) string {
 	v := c.request.Header.Get(k)
 	return v
 }
 
+// Respond with just a status
 func (c *Context) Status(s int) {
 	c.writer.WriteHeader(s)
 }
 
+// Render a string body with status
 func (c *Context) Render(s int, b string) {
 	c.Status(s)
 
@@ -65,6 +84,7 @@ func (c *Context) Render(s int, b string) {
 	}
 }
 
+// Render a byte array with status
 func (c *Context) RenderBytes(s int, b []byte) {
 	c.Status(s)
 
@@ -74,9 +94,10 @@ func (c *Context) RenderBytes(s int, b []byte) {
 	}
 }
 
-func (c *Context) JSON(s int, body any) {
+// Render response in a JSON format from a body
+func (c *Context) JSON(s int, b any) {
 	writeContentType(c.writer, jsonContentType)
-	j, err := json.Marshal(body)
+	j, err := json.Marshal(b)
 	if err != nil {
 		s = http.StatusBadRequest
 	}
@@ -84,6 +105,7 @@ func (c *Context) JSON(s int, body any) {
 	c.RenderBytes(s, j)
 }
 
+// Get a string from the parameters using a key
 func (c *Context) Param(k string) (string, error) {
 	p, f := c.params[k]
 	if !f {
@@ -92,6 +114,7 @@ func (c *Context) Param(k string) (string, error) {
 	return p, nil
 }
 
+// Get an integer from the parameters using a key
 func (c *Context) ParamInt(k string) (int, error) {
 	p, f := c.params[k]
 	if !f {
@@ -105,7 +128,8 @@ func (c *Context) ParamInt(k string) (int, error) {
 	return i, nil
 }
 
-func (c *Context) queryCacheGet() {
+// Get the query cache
+func (c *Context) getQueryCache() {
 	if c.queryCached {
 		return
 	}
@@ -114,8 +138,9 @@ func (c *Context) queryCacheGet() {
 	c.queryCached = true
 }
 
+// Query a string from the context's query
 func (c *Context) Query(k string) (string, error) {
-	c.queryCacheGet()
+	c.getQueryCache()
 	v := c.queryCache[k]
 	if len(v) < 1 {
 		return "", errors.Join(errs.QueryError.Error, errors.New("unable to find "+k))
@@ -124,8 +149,9 @@ func (c *Context) Query(k string) (string, error) {
 	return v[0], nil
 }
 
+// Query an integer from the context's query
 func (c *Context) QueryInt(k string) (int, error) {
-	c.queryCacheGet()
+	c.getQueryCache()
 	v := c.queryCache[k]
 	if len(v) < 1 {
 		return 0, errors.Join(errs.QueryError.Error, errors.New("unable to find "+k))
@@ -137,4 +163,29 @@ func (c *Context) QueryInt(k string) (int, error) {
 	}
 
 	return i, nil
+}
+
+// Using the provided Binder, binds the context body with the a any
+func (c *Context) ShouldBindWith(a any, b binding.Binder) error {
+	return b.Bind(c.request, a)
+}
+
+// Bind JSON to a any
+func (c *Context) BindJSON(a any) error {
+	return nil
+}
+
+// Wrapper for ShouldBindWith(a, binding.JSON)
+func (c *Context) ShouldBindJSON(a any) error {
+	return c.ShouldBindWith(a, binding.JSON)
+}
+
+// Bind XML to a any
+func (c *Context) BindXML(a any) error {
+	return nil
+}
+
+// Wrapper for ShouldBindWith(a, binding.XML)
+func (c *Context) ShouldBindXML(a any) error {
+	return c.ShouldBindWith(a, binding.XML)
 }

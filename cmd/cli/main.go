@@ -120,6 +120,29 @@ func main() {
 		},
 		DecoratorFunc: nil,
 	})
+	// Test JSON binding
+	r.Route(routey.Route{
+		Path:   "/bind",
+		Params: "",
+		Method: routey.Post,
+		HandlerFunc: func(c *routey.Context) {
+			type obj struct {
+				Name  string `json:"name"`
+				Email string `json:"email"`
+			}
+
+			var o obj
+			err := c.ShouldBindJSON(&o)
+			if err != nil {
+				c.Status(http.StatusBadRequest)
+			}
+
+			fmt.Printf("%s name \n%s email\n", o.Name, o.Email)
+
+			c.JSON(http.StatusOK, o)
+		},
+		DecoratorFunc: nil,
+	})
 
 	r.Run()
 }
