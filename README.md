@@ -56,7 +56,7 @@ r.Add(
     "/:param",
     routey.Get,
     handler(),
-    nil
+    nil,
 )
 ```
 
