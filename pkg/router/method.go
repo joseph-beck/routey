@@ -13,6 +13,27 @@ const (
 	Options
 )
 
+func (m Method) String() string {
+	switch m {
+	case Get:
+		return "GET"
+	case Post:
+		return "POST"
+	case Put:
+		return "PUT"
+	case Patch:
+		return "PATCH"
+	case Delete:
+		return "DELETE"
+	case Head:
+		return "HEAD"
+	case Options:
+		return "OPTIONS"
+	default:
+		return "UNDEFINED"
+	}
+}
+
 func parseMethod(s string) Method {
 	switch s {
 	case "GET":
@@ -23,7 +44,7 @@ func parseMethod(s string) Method {
 		return Put
 	case "PATCH":
 		return Patch
-	case "DELEET":
+	case "DELETE":
 		return Delete
 	case "HEAD":
 		return Head
