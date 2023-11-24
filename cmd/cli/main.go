@@ -163,8 +163,17 @@ func main() {
 				c.Status(http.StatusBadRequest)
 				return
 			}
+			r, err := c.QueryInt("repeat")
+			if err != nil {
+				c.Render(http.StatusOK, reverseString(t))
+				return
+			}
 
-			c.Render(http.StatusOK, reverseString(t))
+			b := ""
+			for i := 0; i < r; i++ {
+				b += reverseString(t)
+			}
+			c.Render(http.StatusOK, b)
 		},
 		nil,
 	)

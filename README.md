@@ -36,11 +36,51 @@ func main() {
 
 ```
 
+### Using parameters
+
+```go
+func handler() routey.HandlerFunc {
+    return func(c *routey.Context) {
+        p, err := c.Param("param")
+        if err != nil {
+            c.Status(http.BadRequest)
+            return
+        }
+
+        c.Render(http.StatusOK, p)
+    }
+}
+
+r.Add(
+    "/route",
+    "/:param",
+    routey.Get,
+    handler(),
+    nil
+)
+```
+
+### Using queries
+
+```go
+func handler() routey.HandlerFunc {
+    return func(c *routey.Context) {
+        q, err := c.Query("query")
+        if err != nil {
+            c.Status(http.BadRequest)
+            return
+        }
+
+        c.Render(http.StatusOK, q)
+    }
+}
+```
+
 ### Creating a HandlerFunc
 
 ```go
 func handler() routey.HandlerFunc {
-    return func (c *routey.Context) {
+    return func(c *routey.Context) {
         b := "I am a handler!"
         c.Render(http.StatusOK, b)
     }
