@@ -2,7 +2,6 @@ package router
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -117,7 +116,9 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		r := recover()
 		if r != nil {
-			log.Println("error occurred: ", r)
+			a.logger.WithFields(logr.Fields{
+				"Error": "Panic",
+			}).Error(r)
 			http.Error(w, "Oh Dear", http.StatusInternalServerError)
 		}
 	}()
@@ -190,7 +191,7 @@ func (a *App) Shutdown() {
 	os.Exit(0)
 }
 
-// Log a request
+// Log a request with info
 func logRequest(l *logr.Logger, e Route) {
 	l.WithFields(logr.Fields{
 		"Request": e.Method.String(),
