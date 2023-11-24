@@ -33,13 +33,21 @@ func New() *App {
 	}
 }
 
-// Add a Route with the method, path and handler
-func (a *App) Add(method string, path string, handler HandlerFunc) {
-	m := parseMethod(method)
+// Add a Route with the method, path, params, handler and decorator
+func (a *App) Add(method Method, path string, params string, handler HandlerFunc, decorator DecoratorFunc) {
+	p, err := parseParams(params)
+	if err != nil {
+		a.logger.WithFields(logr.Fields{
+			"Error": "Route",
+		}).Error("Bad Params on route", path, "params", params)
+	}
+
 	a.routes = append(a.routes, Route{
-		Path:        path,
-		Method:      m,
-		HandlerFunc: handler,
+		Path:          path,
+		Params:        p,
+		Method:        method,
+		HandlerFunc:   handler,
+		DecoratorFunc: decorator,
 	})
 }
 

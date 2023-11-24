@@ -7,6 +7,16 @@ import (
 	routey "github.com/joseph-beck/routey/pkg/router"
 )
 
+func reverseString(input string) string {
+	runes := []rune(input)
+
+	for i, j := 0, len(runes)-1; i < j; i, j = i+1, j-1 {
+		runes[i], runes[j] = runes[j], runes[i]
+	}
+
+	return string(runes)
+}
+
 func main() {
 	r := routey.New()
 	go r.Shutdown()
@@ -143,6 +153,21 @@ func main() {
 		},
 		DecoratorFunc: nil,
 	})
+	r.Add(
+		routey.Get,
+		"/reverse",
+		"/:text",
+		func(c *routey.Context) {
+			t, err := c.Param("text")
+			if err != nil {
+				c.Status(http.StatusBadRequest)
+				return
+			}
+
+			c.Render(http.StatusOK, reverseString(t))
+		},
+		nil,
+	)
 
 	r.Run()
 }
