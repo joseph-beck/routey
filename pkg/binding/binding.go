@@ -11,5 +11,7 @@ type Binder interface {
 
 var (
 	JSON = jsonBinding{}
+	TOML = tomlBinding{}
 	XML  = xmlBinding{}
+	YAML = yamlBinding{}
 )

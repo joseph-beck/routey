@@ -180,6 +180,16 @@ func (c *Context) ShouldBindJSON(a any) error {
 	return c.ShouldBindWith(a, binding.JSON)
 }
 
+// Bind TOML to a any
+func (c *Context) BindTOML(a any) error {
+	return nil
+}
+
+// Wrapper for ShouldBindWith(a, binding.TOML)
+func (c *Context) ShouldBindTOML(a any) error {
+	return c.ShouldBindWith(a, binding.TOML)
+}
+
 // Bind XML to a any
 func (c *Context) BindXML(a any) error {
 	return nil
@@ -188,4 +198,14 @@ func (c *Context) BindXML(a any) error {
 // Wrapper for ShouldBindWith(a, binding.XML)
 func (c *Context) ShouldBindXML(a any) error {
 	return c.ShouldBindWith(a, binding.XML)
+}
+
+// Bind YAML to a any
+func (c *Context) BindYAML(a any) error {
+	return nil
+}
+
+// Wrapper for ShouldBindWith(a, binding.YAML)
+func (c *Context) ShouldBindYAML(a any) error {
+	return c.ShouldBindWith(a, binding.YAML)
 }
