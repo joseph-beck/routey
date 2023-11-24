@@ -20,5 +20,8 @@ test:
 	$(GO) mod tidy
 	$(GO) test -cover $(GOMODULES)
 
+update:
+	$(GO) get -u ./...
+
 .phony:
-	all build clean fmt test
+	all build clean fmt test update
