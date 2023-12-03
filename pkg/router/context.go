@@ -105,6 +105,11 @@ func (c *Context) JSON(s int, b any) {
 	c.RenderBytes(s, j)
 }
 
+// Render HTML with a given file
+func (c *Context) HTML() {
+
+}
+
 // Get a string from the parameters using a key
 func (c *Context) Param(k string) (string, error) {
 	p, f := c.params[k]
