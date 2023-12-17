@@ -153,6 +153,7 @@ func main() {
 		},
 		DecoratorFunc: nil,
 	})
+	// Test params and query
 	r.Add(
 		routey.Get,
 		"/reverse",
@@ -174,6 +175,23 @@ func main() {
 				b += reverseString(t)
 			}
 			c.Render(http.StatusOK, b)
+		},
+		nil,
+	)
+	// Test HTML files
+	r.LoadHTMLGlob("web/*")
+	r.Add(
+		routey.Get,
+		"/html",
+		"",
+		func(c *routey.Context) {
+			c.HTML(
+				http.StatusOK,
+				"index.html",
+				routey.M{
+					"title": "Main website",
+				},
+			)
 		},
 		nil,
 	)

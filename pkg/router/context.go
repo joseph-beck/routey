@@ -24,12 +24,40 @@ import (
 //
 //   - queryCached: has the queryCache been made?
 type Context struct {
+	app *App
+
 	writer  http.ResponseWriter
 	request *http.Request
 	params  map[string]string
 
 	queryCache  url.Values
 	queryCached bool
+}
+
+func (c *Context) Reset() {
+	c.app = nil
+
+	c.params = nil
+
+	c.queryCache = nil
+	c.queryCached = false
+}
+
+func (c *Context) Copy() *Context {
+	return &Context{
+		app: c.app,
+
+		writer:  c.writer,
+		request: c.request,
+		params:  c.params,
+
+		queryCache:  c.queryCache,
+		queryCached: c.queryCached,
+	}
+}
+
+func (c *Context) Error(err error) {
+	log.Println(err)
 }
 
 // Log an error to console
@@ -69,6 +97,10 @@ func (c *Context) GetHeader(k string) string {
 	return v
 }
 
+func (c *Context) Abort() {
+
+}
+
 // Respond with just a status
 func (c *Context) Status(s int) {
 	c.writer.WriteHeader(s)
@@ -106,8 +138,15 @@ func (c *Context) JSON(s int, b any) {
 }
 
 // Render HTML with a given file
-func (c *Context) HTML() {
+func (c *Context) HTML(s int, n string, d any) {
+	i := c.app.htmlRender.Instance(n, d)
+	c.Status(s)
 
+	err := i.Render(c.writer)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+	}
 }
 
 // Get a string from the parameters using a key

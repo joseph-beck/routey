@@ -1,6 +1,6 @@
 # routey
 
-An extremely simple Go HTTP Router made for fun!
+An extremely simple Go HTTP Router made for fun! This was heavily inspired by gin.
 
 ## Examples
 

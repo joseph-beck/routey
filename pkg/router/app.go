@@ -2,12 +2,13 @@ package router
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 
-	logr "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // App struct
@@ -17,11 +18,24 @@ import (
 //   - port: string port
 //
 //   - logger: structured logging
+//
+//   - debugMode: if debugMode is enabled things such as HTML as less static, will be slower but easier to debug.
+//
+//   - htmlDelims: HTML Delimiters, these can be customized.
+//
+//   - htmlRender: HTML Renderer, an interface that renders the HTML to the user.
+//
+//   - funcMap: templates.FuncMap
 type App struct {
 	routes []Route
 	port   string
 
-	logger *logr.Logger
+	logger    *logrus.Logger
+	debugMode bool
+
+	htmlDelims HTMLDelims
+	htmlRender HTMLRenderer
+	funcMap    template.FuncMap
 }
 
 // Create a new default App
@@ -29,7 +43,11 @@ func New() *App {
 	return &App{
 		port: ":8080",
 
-		logger: logr.New(),
+		logger:    logrus.New(),
+		debugMode: true,
+
+		htmlDelims: HTMLDelims{Left: "{{", Right: "}}"},
+		funcMap:    template.FuncMap{},
 	}
 }
 
@@ -37,7 +55,7 @@ func New() *App {
 func (a *App) Add(method Method, path string, params string, handler HandlerFunc, decorator DecoratorFunc) {
 	p, err := parseParams(params)
 	if err != nil {
-		a.logger.WithFields(logr.Fields{
+		a.logger.WithFields(logrus.Fields{
 			"Error": "Route",
 		}).Error("Bad Params on route", path, "params", params)
 	}
@@ -119,12 +137,47 @@ func (a *App) Options(path string, handler HandlerFunc) {
 	})
 }
 
+// Load a folder of HTML files.
+func (a *App) LoadHTMLGlob(p string) {
+	t := template.Must(template.New("").Delims(a.htmlDelims.Left, a.htmlDelims.Right).Funcs(a.funcMap).ParseGlob(p))
+
+	if a.debugMode {
+		a.htmlRender = HTMLDebug{
+			Glob:    p,
+			FuncMap: a.funcMap,
+			Delims:  a.htmlDelims,
+		}
+		return
+	}
+
+	a.SetHTMLTemplate(t)
+}
+
+// Load a series of HTML files.
+func (a *App) LoadHTMLFiles(f ...string) {
+	if a.debugMode {
+		a.htmlRender = HTMLDebug{
+			Files:   f,
+			FuncMap: a.funcMap,
+			Delims:  a.htmlDelims,
+		}
+		return
+	}
+
+	t := template.Must(template.New("").Delims(a.htmlDelims.Left, a.htmlDelims.Right).Funcs(a.funcMap).ParseFiles(f...))
+	a.SetHTMLTemplate(t)
+}
+
+func (a *App) SetHTMLTemplate(t *template.Template) {
+	a.htmlRender = HTMLRender{Template: t.Funcs(a.funcMap)}
+}
+
 // ServerHTTP with ResponseWriter and Request
 func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	defer func() {
 		r := recover()
 		if r != nil {
-			a.logger.WithFields(logr.Fields{
+			a.logger.WithFields(logrus.Fields{
 				"Error": "Panic",
 			}).Error(r)
 			http.Error(w, "Oh Dear", http.StatusInternalServerError)
@@ -133,6 +186,8 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for _, e := range a.routes {
 		c := &Context{
+			app: a,
+
 			writer:  w,
 			request: r,
 		}
@@ -169,10 +224,10 @@ func (a *App) Run() {
 												 
 	`)
 
-	a.logger.WithFields(logr.Fields{
+	a.logger.WithFields(logrus.Fields{
 		"State": "Loading",
 	}).Info("Loading app...")
-	a.logger.WithFields(logr.Fields{
+	a.logger.WithFields(logrus.Fields{
 		"State": "Routing",
 	}).Info(fmt.Sprintf("Serving %d routes", len(a.routes)))
 	http.ListenAndServe(a.port, a)
@@ -186,13 +241,13 @@ func (a *App) Shutdown() {
 	<-stop
 	fmt.Print("\r")
 
-	a.logger.WithFields(logr.Fields{
+	a.logger.WithFields(logrus.Fields{
 		"State": "Closing",
 	}).Info("Closing app...")
 
 	// Closing down stuffs
 
-	a.logger.WithFields(logr.Fields{
+	a.logger.WithFields(logrus.Fields{
 		"State": "Exit",
 	}).Info("Closed app")
 
@@ -200,8 +255,8 @@ func (a *App) Shutdown() {
 }
 
 // Log a request with info
-func logRequest(l *logr.Logger, e Route) {
-	l.WithFields(logr.Fields{
+func logRequest(l *logrus.Logger, e Route) {
+	l.WithFields(logrus.Fields{
 		"Request": e.Method.String(),
 	}).Info(e.Path + e.Params)
 }
