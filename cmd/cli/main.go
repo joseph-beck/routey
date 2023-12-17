@@ -195,6 +195,19 @@ func main() {
 		},
 		nil,
 	)
+	r.Add(
+		routey.Get,
+		"/hello",
+		"",
+		func(c *routey.Context) {
+			c.HTML(
+				http.StatusOK,
+				"hello.html",
+				nil,
+			)
+		},
+		nil,
+	)
 
 	r.Run()
 }

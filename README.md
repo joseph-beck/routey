@@ -101,3 +101,74 @@ func decorator(f routey.HandlerFunc) routey.HandlerFunc {
 ```
 
 Declaring a decorator function this way allows us to decorate decorator functions as well as more easily use dependency injection. They can be used for a variety of things, but commonly used in protecting our end points.
+
+### Rendering HTML
+
+```go
+func main() {
+    ...
+    r.LoadHTMLGlob("web/*")
+    ...
+}
+
+// /index
+func indexHandler() routey.HandlerFunc {
+    return func(c *routey.Context) {
+        c.HTML(
+            http.StatusOK,
+            "index.html",
+            nil,
+        )
+    }
+}
+
+// /name/:name
+func helloHandler() routey.HandlerFunc {
+    return func(c *routey.Context) {
+        name, err := c.Param("name")
+        if err != nil {
+            c.Status(http.StatusBadRequest)
+            return
+        }
+
+        c.HTML(
+            http.StatusOK,
+            "hello.html",
+            routey.M{
+                "name": name,
+            },
+        )
+    }
+}
+```
+
+We can render HTML pages by loading a glob, or group of HTML files in a directory, or just specific files. The endpoints are added to the App just like any other endpoint. We can link HTML pages together by creating an endpoint for another HTML file and using a href to that, for example:
+
+***index.html***
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Routey</h1>
+<a href="/hello">hello<a/>
+
+</body>
+</html>
+```
+
+***hello.html***
+
+```html
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>Hello {{ .name }}<p>
+<a href="/index">home<a/>
+
+</body>
+</html>
+
+```
