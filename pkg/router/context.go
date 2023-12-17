@@ -106,6 +106,20 @@ func (c *Context) Status(s int) {
 	c.writer.WriteHeader(s)
 }
 
+func (c *Context) Redirect(s int, l string) {
+	i := Redirect{
+		status:   s,
+		request:  c.request,
+		location: l,
+	}
+
+	err := i.Render(c.writer)
+	if err != nil {
+		c.Error(err)
+		c.Abort()
+	}
+}
+
 // Render a string body with status
 func (c *Context) Render(s int, b string) {
 	c.Status(s)

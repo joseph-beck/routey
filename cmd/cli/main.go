@@ -208,6 +208,16 @@ func main() {
 		},
 		nil,
 	)
+	// Test redirect
+	r.Add(
+		routey.Get,
+		"/redirect",
+		"",
+		func(c *routey.Context) {
+			c.Redirect(http.StatusMovedPermanently, "https://www.google.com")
+		},
+		nil,
+	)
 
 	r.Run()
 }
