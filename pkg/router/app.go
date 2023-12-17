@@ -233,7 +233,7 @@ func (a *App) Run() {
 	http.ListenAndServe(a.port, a)
 }
 
-// Shutdown the App, should be ran like go Shutdown()
+// Shutdown the App, should be ran as go Shutdown()
 func (a *App) Shutdown() {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)

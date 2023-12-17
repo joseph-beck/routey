@@ -34,6 +34,7 @@ type Context struct {
 	queryCached bool
 }
 
+// Reset the current Context
 func (c *Context) Reset() {
 	c.app = nil
 
@@ -43,6 +44,7 @@ func (c *Context) Reset() {
 	c.queryCached = false
 }
 
+// Copy the current Context and give a pointer to the copy
 func (c *Context) Copy() *Context {
 	return &Context{
 		app: c.app,
@@ -56,12 +58,19 @@ func (c *Context) Copy() *Context {
 	}
 }
 
-func (c *Context) Error(err error) {
-	log.Println(err)
+// Log an error to console
+func (c *Context) Error(err errs.Error) {
+	if err.Error == nil {
+		panic("err is nil")
+	}
 }
 
 // Log an error to console
 func (c *Context) ErrorLog(err errs.Error) {
+	if err.Error == nil {
+		panic("err is nil")
+	}
+
 	log.Println(err.String())
 }
 
@@ -97,6 +106,7 @@ func (c *Context) GetHeader(k string) string {
 	return v
 }
 
+// Aborts the current action
 func (c *Context) Abort() {
 
 }
@@ -106,6 +116,7 @@ func (c *Context) Status(s int) {
 	c.writer.WriteHeader(s)
 }
 
+// Redirects to the given location with the given status
 func (c *Context) Redirect(s int, l string) {
 	i := Redirect{
 		status:   s,
@@ -115,7 +126,7 @@ func (c *Context) Redirect(s int, l string) {
 
 	err := i.Render(c.writer)
 	if err != nil {
-		c.Error(err)
+		c.ErrorLog(errs.RedirectError)
 		c.Abort()
 	}
 }
@@ -127,6 +138,7 @@ func (c *Context) Render(s int, b string) {
 	_, err := c.Write(b)
 	if err != nil {
 		c.ErrorLog(errs.RenderError)
+		c.Abort()
 	}
 }
 
@@ -158,7 +170,7 @@ func (c *Context) HTML(s int, n string, d any) {
 
 	err := i.Render(c.writer)
 	if err != nil {
-		c.Error(err)
+		c.Error(errs.HTMLError)
 		c.Abort()
 	}
 }
