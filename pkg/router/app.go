@@ -51,6 +51,11 @@ func New() *App {
 	}
 }
 
+// Add Route
+func (a *App) Route(route Route) {
+	a.routes = append(a.routes, route)
+}
+
 // Add a Route with the method, path, params, handler and decorator
 func (a *App) Add(method Method, path string, params string, handler HandlerFunc, decorator DecoratorFunc) {
 	p, err := parseParams(params)
@@ -60,18 +65,13 @@ func (a *App) Add(method Method, path string, params string, handler HandlerFunc
 		}).Error("Bad Params on route", path, "params", params)
 	}
 
-	a.routes = append(a.routes, Route{
+	a.Route(Route{
 		Path:          path,
 		Params:        p,
 		Method:        method,
 		HandlerFunc:   handler,
 		DecoratorFunc: decorator,
 	})
-}
-
-// Add Route
-func (a *App) Route(route Route) {
-	a.routes = append(a.routes, route)
 }
 
 // Add Get route
@@ -168,6 +168,7 @@ func (a *App) LoadHTMLFiles(f ...string) {
 	a.SetHTMLTemplate(t)
 }
 
+// Set the current HTML renderer.
 func (a *App) SetHTMLTemplate(t *template.Template) {
 	a.htmlRender = HTMLRender{Template: t.Funcs(a.funcMap)}
 }

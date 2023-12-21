@@ -28,20 +28,20 @@ type Route struct {
 }
 
 // Match a Route with a Context
-func (route *Route) Match(c *Context) bool {
+func (r *Route) Match(c *Context) bool {
 	method := parseMethod(c.request.Method)
-	if method != route.Method {
+	if method != r.Method {
 		return false
 	}
 
-	route.regexp = regexp.MustCompile("^" + route.Path + route.Params + "$")
-	match := route.regexp.FindStringSubmatch(c.request.URL.Path)
+	r.regexp = regexp.MustCompile("^" + r.Path + r.Params + "$")
+	match := r.regexp.FindStringSubmatch(c.request.URL.Path)
 	if match == nil {
 		return false
 	}
 
 	params := make(map[string]string)
-	groups := route.regexp.SubexpNames()
+	groups := r.regexp.SubexpNames()
 	for i, group := range match {
 		params[groups[i]] = group
 	}

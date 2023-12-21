@@ -5,26 +5,31 @@ import (
 	"net/http"
 )
 
+// Interface for Rendering HTML
 type HTMLRenderer interface {
 	Instance(string, any) Renderer
 }
 
+// Delimiters used in the HTML file, defaults to {{ ... }}
 type HTMLDelims struct {
 	Left  string
 	Right string
 }
 
+// Default HTML renderer.
 type HTML struct {
 	Template *template.Template
 	Name     string
 	Data     any
 }
 
+// HTML Renderer implementor
 type HTMLRender struct {
 	Template *template.Template
 	Delims   HTMLDelims
 }
 
+// Debug HTML renderer, allows for editing of HTML files at runtime.
 type HTMLDebug struct {
 	Files   []string
 	Glob    string
@@ -32,6 +37,7 @@ type HTMLDebug struct {
 	FuncMap template.FuncMap
 }
 
+// Render the HTML
 func (h HTML) Render(w http.ResponseWriter) error {
 	h.WriteContentType(w)
 
@@ -41,10 +47,12 @@ func (h HTML) Render(w http.ResponseWriter) error {
 	return h.Template.ExecuteTemplate(w, h.Name, h.Data)
 }
 
+// Write the content type
 func (h HTML) WriteContentType(w http.ResponseWriter) {
 	writeContentType(w, htmlContentType)
 }
 
+// Create an instance of the HTMLRenderer
 func (h HTMLRender) Instance(n string, d any) Renderer {
 	return HTML{
 		Template: h.Template,
@@ -53,6 +61,7 @@ func (h HTMLRender) Instance(n string, d any) Renderer {
 	}
 }
 
+// Create an instance of the HTMLRenderer, for the debugging Renderer
 func (h HTMLDebug) Instance(n string, d any) Renderer {
 	var t *template.Template
 	l := false

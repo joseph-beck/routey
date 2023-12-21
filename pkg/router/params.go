@@ -5,6 +5,7 @@ import (
 	"strings"
 )
 
+// Parse the params in a given string, returning a string and error
 func parseParams(s string) (string, error) {
 	if s == "" {
 		return "", nil
@@ -33,6 +34,7 @@ func parseParams(s string) (string, error) {
 	return pattern, nil
 }
 
+// Parse the params of the given path
 func parsePathParams(s string) (string, error) {
 	if s == "" {
 		return "/", nil
