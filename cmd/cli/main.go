@@ -60,7 +60,7 @@ func main() {
 	// Test route that has parameters
 	r.Route(routey.Route{
 		Path:   "/echo",
-		Params: `/(?P<string>\w+)`,
+		Params: "/:string",
 		Method: routey.Get,
 		HandlerFunc: func(c *routey.Context) {
 			p, err := c.Param("string")
@@ -75,7 +75,7 @@ func main() {
 	// Test param int
 	r.Route(routey.Route{
 		Path:   "/add",
-		Params: `/(?P<one>\w+)/(?P<two>\w+)`,
+		Params: "/:one/:two",
 		Method: routey.Get,
 		HandlerFunc: func(c *routey.Context) {
 			o, err := c.ParamInt("one")

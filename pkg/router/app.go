@@ -51,23 +51,23 @@ func New() *App {
 	}
 }
 
-// Add Route
-func (a *App) Route(route Route) {
-	a.routes = append(a.routes, route)
+// Adds a Route to the App
+func (a *App) Route(r Route) {
+	if r.Params != "" {
+		err := r.Format()
+		if err != nil {
+			logError(a.logger, err.Error()+" "+r.Path+r.Params)
+		}
+	}
+
+	a.routes = append(a.routes, r)
 }
 
 // Add a Route with the method, path, params, handler and decorator
 func (a *App) Add(method Method, path string, params string, handler HandlerFunc, decorator DecoratorFunc) {
-	p, err := parseParams(params)
-	if err != nil {
-		a.logger.WithFields(logrus.Fields{
-			"Error": "Route",
-		}).Error("Bad Params on route", path, "params", params)
-	}
-
 	a.Route(Route{
 		Path:          path,
-		Params:        p,
+		Params:        params,
 		Method:        method,
 		HandlerFunc:   handler,
 		DecoratorFunc: decorator,
@@ -260,4 +260,11 @@ func logRequest(l *logrus.Logger, e Route) {
 	l.WithFields(logrus.Fields{
 		"Request": e.Method.String(),
 	}).Info(e.Path + e.Params)
+}
+
+// Log error
+func logError(l *logrus.Logger, m string) {
+	l.WithFields(logrus.Fields{
+		"Error": "Routing",
+	}).Error(m)
 }

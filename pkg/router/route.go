@@ -24,7 +24,8 @@ type Route struct {
 	HandlerFunc   HandlerFunc
 	DecoratorFunc DecoratorFunc
 
-	regexp *regexp.Regexp
+	regexp    *regexp.Regexp
+	formatted bool
 }
 
 // Match a Route with a Context
@@ -48,4 +49,19 @@ func (r *Route) Match(c *Context) bool {
 	c.params = params
 
 	return true
+}
+
+// Format the params of the route
+func (r *Route) Format() error {
+	if r.formatted {
+		return nil
+	}
+
+	p, err := parseParams(r.Params)
+	if err != nil {
+		return err
+	}
+
+	r.Params = p
+	return nil
 }
