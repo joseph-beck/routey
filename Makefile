@@ -11,6 +11,7 @@ build:
 
 clean:
 	@rm -rf build
+	$(GO) clean
 
 fmt:
 	$(GOFMT) -w $(GOFILES)
@@ -22,6 +23,12 @@ test:
 
 update:
 	$(GO) get -u ./...
+	$(GO) mod tidy
+
+info:
+	@$(GO) vet $(GOMODULES)
+	@$(GO) list $(GOMODULES)
+	@$(GO) version
 
 .phony:
-	all build clean fmt test update
+	all build clean fmt test update info
