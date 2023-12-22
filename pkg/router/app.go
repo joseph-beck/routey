@@ -61,6 +61,7 @@ func (a *App) Route(r Route) {
 	}
 
 	a.routes = append(a.routes, r)
+	logRoute(a.logger, r)
 }
 
 // Add a Route with the method, path, params, handler and decorator
@@ -260,6 +261,12 @@ func logRequest(l *logrus.Logger, e Route) {
 	l.WithFields(logrus.Fields{
 		"Request": e.Method.String(),
 	}).Info(e.Path + e.Params)
+}
+
+func logRoute(l *logrus.Logger, e Route) {
+	l.WithFields(logrus.Fields{
+		"Route": e.Method.String(),
+	}).Info("added route " + e.Path + e.Params)
 }
 
 // Log error
