@@ -6,6 +6,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type HelloService struct{}
+
+func (s HelloService) Add() []Route {
+	return []Route{
+		{
+			Path:          "/hello",
+			Params:        "",
+			Method:        Get,
+			HandlerFunc:   s.Get(),
+			DecoratorFunc: nil,
+		},
+	}
+}
+
+func (s *HelloService) Get() HandlerFunc {
+	return func(c *Context) {
+
+	}
+}
+
 func TestAppNew(t *testing.T) {
 	app := New()
 	assert.NotNil(t, app)
@@ -24,6 +44,15 @@ func TestRoute(t *testing.T) {
 		DecoratorFunc: nil,
 	}
 	app.Route(route)
+	assert.Equal(t, 1, len(app.routes))
+	assert.Equal(t, "/hello", app.routes[0].Path)
+}
+
+func TestService(t *testing.T) {
+	app := New()
+	assert.Equal(t, 0, len(app.routes))
+	s := HelloService{}
+	app.Service(s)
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }

@@ -64,6 +64,14 @@ func (a *App) Route(r Route) {
 	logRoute(a.logger, r)
 }
 
+// Adds a service to the App
+func (a *App) Service(s Service) {
+	r := s.Add()
+	for _, rs := range r {
+		a.Route(rs)
+	}
+}
+
 // Add a Route with the method, path, params, handler and decorator
 func (a *App) Add(method Method, path string, params string, handler HandlerFunc, decorator DecoratorFunc) {
 	a.Route(Route{
@@ -247,7 +255,7 @@ func (a *App) Shutdown() {
 		"State": "Closing",
 	}).Info("Closing app...")
 
-	// Closing down stuffs
+	// Closing down stuff
 
 	a.logger.WithFields(logrus.Fields{
 		"State": "Exit",
