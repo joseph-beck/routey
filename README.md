@@ -106,6 +106,30 @@ Declaring a decorator function this way allows us to decorate decorator function
 
 routey also supports the use of Services, which are structs with methods that are your endpoints, every Service must implement an `Add() []Route` that can be registered to the App with the `Register()` method.
 
+```go
+type HelloService struct{}
+
+func (s HelloService) Add() []Route {
+    return []Route{
+        {
+            Path:          "/hello",
+            Params:        "",
+            Method:        Get,
+            HandlerFunc:   s.Get(),
+            DecoratorFunc: nil,
+        },
+    }
+}
+
+func (s *HelloService) Get() HandlerFunc {
+    return func(c *Context) {
+        c.Status(http.StatusOK)
+    }
+}
+```
+
+When creating instances of your Service you can give dependencies to the struct for example a database connection, etc.
+
 ### Rendering HTML
 
 ```go
