@@ -1,6 +1,7 @@
 package router
 
 import (
+	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,7 @@ func (s HelloService) Add() []Route {
 
 func (s *HelloService) Get() HandlerFunc {
 	return func(c *Context) {
-
+		c.Status(http.StatusOK)
 	}
 }
 

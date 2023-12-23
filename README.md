@@ -102,6 +102,10 @@ func decorator(f routey.HandlerFunc) routey.HandlerFunc {
 
 Declaring a decorator function this way allows us to decorate decorator functions as well as more easily use dependency injection. They can be used for a variety of things, but commonly used in protecting our end points.
 
+### Services
+
+routey also supports the use of Services, which are structs with methods that are your endpoints, every Service must implement an `Add() []Route` that can be registered to the App with the `Register()` method.
+
 ### Rendering HTML
 
 ```go
