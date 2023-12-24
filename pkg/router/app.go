@@ -79,11 +79,9 @@ func New(c ...Config) *App {
 
 // Adds a Route to the App
 func (a *App) Route(r Route) {
-	if r.Params != "" {
-		err := r.Format()
-		if err != nil {
-			logError(a.logger, err.Error()+" "+r.Path+r.Params, "ROUTE")
-		}
+	err := r.Format()
+	if err != nil {
+		logError(a.logger, err.Error()+" "+r.Path+r.Params, "ROUTE")
 	}
 
 	a.routes = append(a.routes, r)
