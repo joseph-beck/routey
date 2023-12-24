@@ -25,6 +25,7 @@ type Route struct {
 	DecoratorFunc DecoratorFunc
 
 	regexp    *regexp.Regexp
+	rawPath   string
 	formatted bool
 }
 
@@ -35,7 +36,7 @@ func (r *Route) Match(c *Context) bool {
 		return false
 	}
 
-	r.regexp = regexp.MustCompile("^" + r.Path + r.Params + "$")
+	r.regexp = regexp.MustCompile("^" + r.rawPath + "$")
 	match := r.regexp.FindStringSubmatch(c.request.URL.Path)
 	if match == nil {
 		return false
@@ -57,11 +58,11 @@ func (r *Route) Format() error {
 		return nil
 	}
 
-	p, err := parseParams(r.Params)
+	p, err := parsePathParams(r.Path + r.Params)
 	if err != nil {
 		return err
 	}
+	r.rawPath = p
 
-	r.Params = p
 	return nil
 }

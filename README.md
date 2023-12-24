@@ -45,8 +45,9 @@ func main() {
 
     r.Run()
 }
-
 ```
+
+Please note that routes defined before others will have precedence, for example a route of /api/:id will have complete precedence over a route /api/ping even if the route /api/ping is called.
 
 ### Using parameters
 

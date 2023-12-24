@@ -6,6 +6,9 @@ GOMODULES := $(shell go list ./...)
 all:
 	$(GO) run cmd/cli/main.go
 
+http:
+	$(GO) run cmd/httpd/main.go
+
 build:
 	$(GO) build -o build/program/app cmd/httpd/main.go
 

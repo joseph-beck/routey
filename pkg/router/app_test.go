@@ -69,7 +69,7 @@ func TestAdd(t *testing.T) {
 func TestGet(t *testing.T) {
 	app := New()
 	assert.Equal(t, 0, len(app.routes))
-	app.Get("/hello", func(c *Context) {})
+	app.Get("/hello", "", func(c *Context) {})
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }
@@ -77,7 +77,7 @@ func TestGet(t *testing.T) {
 func TestPost(t *testing.T) {
 	app := New()
 	assert.Equal(t, 0, len(app.routes))
-	app.Post("/hello", func(c *Context) {})
+	app.Post("/hello", "", func(c *Context) {})
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }
@@ -85,7 +85,7 @@ func TestPost(t *testing.T) {
 func TestPut(t *testing.T) {
 	app := New()
 	assert.Equal(t, 0, len(app.routes))
-	app.Put("/hello", func(c *Context) {})
+	app.Put("/hello", "", func(c *Context) {})
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }
@@ -93,7 +93,7 @@ func TestPut(t *testing.T) {
 func TestPatch(t *testing.T) {
 	app := New()
 	assert.Equal(t, 0, len(app.routes))
-	app.Patch("/hello", func(c *Context) {})
+	app.Patch("/hello", "", func(c *Context) {})
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }
@@ -101,7 +101,7 @@ func TestPatch(t *testing.T) {
 func TestDelete(t *testing.T) {
 	app := New()
 	assert.Equal(t, 0, len(app.routes))
-	app.Delete("/hello", func(c *Context) {})
+	app.Delete("/hello", "", func(c *Context) {})
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }
@@ -109,7 +109,7 @@ func TestDelete(t *testing.T) {
 func TestHead(t *testing.T) {
 	app := New()
 	assert.Equal(t, 0, len(app.routes))
-	app.Head("/hello", func(c *Context) {})
+	app.Head("/hello", "", func(c *Context) {})
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }
@@ -117,7 +117,7 @@ func TestHead(t *testing.T) {
 func TestOptions(t *testing.T) {
 	app := New()
 	assert.Equal(t, 0, len(app.routes))
-	app.Options("/hello", func(c *Context) {})
+	app.Options("/hello", "", func(c *Context) {})
 	assert.Equal(t, 1, len(app.routes))
 	assert.Equal(t, "/hello", app.routes[0].Path)
 }
