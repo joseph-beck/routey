@@ -2,6 +2,18 @@
 
 An extremely simple Go HTTP Router made for fun! This was heavily inspired by gin.
 
+## Installation
+
+```sh
+$ go get -u github.com/joseph-beck/routey
+```
+
+```go
+import (
+    routey github.com/joseph-beck/routey/pkg/router
+)
+```
+
 ## Examples
 
 ### Getting Started
