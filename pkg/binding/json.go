@@ -15,11 +15,12 @@ func (j jsonBinding) Name() string {
 }
 
 func (j jsonBinding) Bind(r *http.Request, a any) error {
-	if r == nil || r.Body == nil {
-		return errors.New("invalid request")
+	buff, err := j.readBody(r)
+	if err != nil {
+		return err
 	}
 
-	return j.decodeJSON(r.Body, a)
+	return j.decodeJSON(buff, a)
 }
 
 func (j jsonBinding) BindBody(b []byte, a any) error {
@@ -34,4 +35,20 @@ func (j jsonBinding) decodeJSON(r io.Reader, a any) error {
 		return err
 	}
 	return validate(a)
+}
+
+func (j jsonBinding) readBody(r *http.Request) (*bytes.Buffer, error) {
+	if r.Body == nil {
+		return nil, errors.New("invalid request")
+	}
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	buff := bytes.NewBuffer(b)
+	r.Body = io.NopCloser(buff)
+	n := bytes.NewBuffer(b)
+	return n, nil
 }

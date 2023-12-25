@@ -22,8 +22,11 @@ func (x xmlBinding) BindBody(b []byte, a any) error {
 }
 func (x xmlBinding) decodeXML(r io.Reader, a any) error {
 	decoder := xml.NewDecoder(r)
-	if err := decoder.Decode(a); err != nil {
+
+	err := decoder.Decode(a)
+	if err != nil {
 		return err
 	}
+
 	return validate(a)
 }

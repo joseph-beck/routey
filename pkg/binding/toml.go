@@ -10,22 +10,25 @@ import (
 
 type tomlBinding struct{}
 
-func (tomlBinding) Name() string {
+func (t tomlBinding) Name() string {
 	return "toml"
 }
 
-func (tomlBinding) Bind(r *http.Request, a any) error {
-	return decodeToml(r.Body, a)
+func (t tomlBinding) Bind(r *http.Request, a any) error {
+	return t.decodeToml(r.Body, a)
 }
 
-func (tomlBinding) BindBody(b []byte, a any) error {
-	return decodeToml(bytes.NewReader(b), a)
+func (t tomlBinding) BindBody(b []byte, a any) error {
+	return t.decodeToml(bytes.NewReader(b), a)
 }
 
-func decodeToml(r io.Reader, a any) error {
+func (t tomlBinding) decodeToml(r io.Reader, a any) error {
 	decoder := toml.NewDecoder(r)
-	if err := decoder.Decode(a); err != nil {
+
+	err := decoder.Decode(a)
+	if err != nil {
 		return err
 	}
+
 	return decoder.Decode(a)
 }
