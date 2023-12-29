@@ -3,10 +3,16 @@ package router
 import (
 	"encoding/json"
 	"errors"
+	"io"
 	"log"
+	"mime/multipart"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strconv"
+	"strings"
+	"sync"
 
 	"github.com/joseph-beck/routey/pkg/binding"
 	errs "github.com/joseph-beck/routey/pkg/error"
@@ -29,6 +35,10 @@ type Context struct {
 	writer  http.ResponseWriter
 	request *http.Request
 	params  map[string]string
+	state   State
+	path    string
+	values  map[string]any
+	mu      sync.Mutex
 
 	queryCache  url.Values
 	queryCached bool
@@ -39,6 +49,10 @@ func (c *Context) Reset() {
 	c.app = nil
 
 	c.params = nil
+	c.state = Healthy
+	c.path = ""
+	c.values = nil
+	c.mu = sync.Mutex{}
 
 	c.queryCache = nil
 	c.queryCached = false
@@ -52,10 +66,48 @@ func (c *Context) Copy() *Context {
 		writer:  c.writer,
 		request: c.request,
 		params:  c.params,
+		state:   c.state,
+		path:    c.path,
+		values:  c.values,
+		mu:      sync.Mutex{},
 
 		queryCache:  c.queryCache,
 		queryCached: c.queryCached,
 	}
+}
+
+// Sets a value within the context
+func (c *Context) Set(k string, v any) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.values == nil {
+		c.values = make(map[string]any)
+	}
+
+	c.values[k] = v
+}
+
+// Gets a value stored within the context
+func (c *Context) Get(k string) (any, bool) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	v, e := c.values[k]
+	return v, e
+}
+
+// A value must be returned from this otherwise an error will occur
+func (c *Context) MustGet(k string) (any, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	v, e := c.values[k]
+	if !e {
+		return nil, errs.NoDataError.Error
+	}
+
+	return v, nil
 }
 
 // Log an error to console
@@ -106,9 +158,30 @@ func (c *Context) GetHeader(k string) string {
 	return v
 }
 
+// Get the path of the context
+func (c *Context) Path() string {
+	return c.path
+}
+
+func (c *Context) Aborted() bool {
+	return c.state == Aborted
+}
+
 // Aborts the current action
 func (c *Context) Abort() {
+	c.state = Aborted
+}
 
+// Abort with a status
+func (c *Context) AbortWithStatus(s int) {
+	c.state = Aborted
+	c.Status(s)
+}
+
+// Abort with a status and an error
+func (c *Context) AbortWithError(s int, e error) {
+	c.state = Aborted
+	c.Status(s)
 }
 
 // Respond with just a status
@@ -175,6 +248,81 @@ func (c *Context) HTML(s int, n string, d any) {
 	}
 }
 
+// Serve the user a local file
+func (c *Context) GetFile(p string) {
+	http.ServeFile(c.writer, c.request, p)
+}
+
+// Save a file that was uploaded
+func (c *Context) SaveFile(f *multipart.FileHeader, p string) error {
+	s, err := f.Open()
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+
+	err = os.MkdirAll(filepath.Dir(p), 0750)
+	if err != nil {
+		return err
+	}
+
+	o, err := os.Create(p)
+	if err != nil {
+		return err
+	}
+	defer o.Close()
+
+	_, err = io.Copy(o, s)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Get a form file
+func (c *Context) FormFile(n string) (*multipart.FileHeader, error) {
+	if c.request.MultipartForm == nil {
+		err := c.request.ParseMultipartForm(32 << 30)
+		if err != nil {
+			return nil, err
+		}
+	}
+	f, h, err := c.request.FormFile(n)
+	if err != nil {
+		return nil, err
+	}
+
+	f.Close()
+	return h, nil
+}
+
+// Get a multipart form
+func (c *Context) MultipartForm() (*multipart.Form, error) {
+	err := c.request.ParseMultipartForm(32 << 30)
+	if err != nil {
+		return nil, err
+	}
+	f := c.request.MultipartForm
+
+	return f, nil
+}
+
+// Get a value from the cookies of the request
+func (c *Context) Cookie(n string) (string, error) {
+	s, err := c.request.Cookie(n)
+	if err != nil {
+		return "", err
+	}
+
+	v, err := url.QueryUnescape(s.Value)
+	if err != nil {
+		return "", err
+	}
+
+	return v, nil
+}
+
 // Get a string from the parameters using a key
 func (c *Context) Param(k string) (string, error) {
 	p, f := c.params[k]
@@ -235,14 +383,41 @@ func (c *Context) QueryInt(k string) (int, error) {
 	return i, nil
 }
 
+// Get the IP off the requester
+func (c *Context) RequestAddress() (string, error) {
+	h := c.request.Header.Get("X-Forwarded-For")
+	if h != "" {
+		a := strings.Split(h, ",")
+		return strings.TrimSpace(a[0]), nil
+	}
+
+	a := strings.Split(c.request.RemoteAddr, ":")
+	if a[0] == "" {
+		return "", errs.HTMLError.Error
+	}
+
+	return a[0], nil
+}
+
 // Using the provided Binder, binds the context body with the a any
 func (c *Context) ShouldBindWith(a any, b binding.Binder) error {
 	return b.Bind(c.request, a)
 }
 
+// Must bind with the given struct
+func (c *Context) MustBindWith(a any, b binding.Binder) error {
+	err := c.ShouldBindWith(a, b)
+	if err != nil {
+		c.AbortWithError(http.StatusBadRequest, err)
+		return err
+	}
+
+	return nil
+}
+
 // Bind JSON to a any
 func (c *Context) BindJSON(a any) error {
-	return nil
+	return c.MustBindWith(a, binding.JSON)
 }
 
 // Wrapper for ShouldBindWith(a, binding.JSON)
@@ -252,7 +427,7 @@ func (c *Context) ShouldBindJSON(a any) error {
 
 // Bind TOML to a any
 func (c *Context) BindTOML(a any) error {
-	return nil
+	return c.MustBindWith(a, binding.TOML)
 }
 
 // Wrapper for ShouldBindWith(a, binding.TOML)
@@ -262,7 +437,7 @@ func (c *Context) ShouldBindTOML(a any) error {
 
 // Bind XML to a any
 func (c *Context) BindXML(a any) error {
-	return nil
+	return c.MustBindWith(a, binding.XML)
 }
 
 // Wrapper for ShouldBindWith(a, binding.XML)
@@ -272,7 +447,7 @@ func (c *Context) ShouldBindXML(a any) error {
 
 // Bind YAML to a any
 func (c *Context) BindYAML(a any) error {
-	return nil
+	return c.MustBindWith(a, binding.YAML)
 }
 
 // Wrapper for ShouldBindWith(a, binding.YAML)

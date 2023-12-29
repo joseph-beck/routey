@@ -243,6 +243,8 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 			writer:  w,
 			request: r,
+			state:   Healthy,
+			path:    e.Path + e.Params,
 		}
 
 		m := e.Match(c)

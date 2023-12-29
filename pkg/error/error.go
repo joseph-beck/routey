@@ -12,6 +12,7 @@ const (
 	QueryErrorCode                     // 4
 	RedirectErrorCode                  // 5
 	HTMLErrorCode                      // 6
+	NoDataErrorCode                    // 7
 )
 
 type Error struct {
@@ -50,6 +51,11 @@ var (
 		Message: "HTML Error Occurred",
 		Error:   errors.New("html error occurred"),
 		Code:    HTMLErrorCode,
+	}
+	NoDataError = Error{
+		Message: "No Data Error Occurred",
+		Error:   errors.New("no data error occurred"),
+		Code:    NoDataErrorCode,
 	}
 )
 
