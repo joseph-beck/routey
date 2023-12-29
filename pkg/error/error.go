@@ -5,14 +5,15 @@ import "errors"
 type ErrorCode int
 
 const (
-	DefaultErrorCode  ErrorCode = iota // 0
-	NilErrorCode                       // 1
-	RenderErrorCode                    // 2
-	ServerErrorCode                    // 3
-	QueryErrorCode                     // 4
-	RedirectErrorCode                  // 5
-	HTMLErrorCode                      // 6
-	NoDataErrorCode                    // 7
+	DefaultErrorCode    ErrorCode = iota // 0
+	NilErrorCode                         // 1
+	RenderErrorCode                      // 2
+	ServerErrorCode                      // 3
+	QueryErrorCode                       // 4
+	RedirectErrorCode                    // 5
+	HTMLErrorCode                        // 6
+	NoDataErrorCode                      // 7
+	DataExistsErrorCode                  // 8
 )
 
 type Error struct {
@@ -56,6 +57,11 @@ var (
 		Message: "No Data Error Occurred",
 		Error:   errors.New("no data error occurred"),
 		Code:    NoDataErrorCode,
+	}
+	DataExistsError = Error{
+		Message: "Data Exists Error Occurred",
+		Error:   errors.New("data exists error occurred"),
+		Code:    DataExistsErrorCode,
 	}
 )
 

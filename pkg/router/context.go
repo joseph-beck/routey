@@ -88,6 +88,24 @@ func (c *Context) Set(k string, v any) {
 	c.values[k] = v
 }
 
+// Sets a value only if it does not exist
+func (c *Context) MustSet(k string, v string) error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.values == nil {
+		c.values = make(map[string]any)
+	}
+
+	_, e := c.values[k]
+	if e {
+		return errs.DataExistsError.Error
+	}
+
+	c.values[k] = v
+	return nil
+}
+
 // Gets a value stored within the context
 func (c *Context) Get(k string) (any, bool) {
 	c.mu.Lock()
