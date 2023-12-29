@@ -5,8 +5,12 @@ import (
 )
 
 var (
-	jsonContentType = []string{"application/json; charset=utf-8"}
-	htmlContentType = []string{"text/html; charset=utf-8"}
+	jsonContentType  = []string{"application/json; charset=utf-8"}
+	tomlContentType  = []string{"application/toml; charset=utf-8"}
+	yamlContentType  = []string{"application/x-yaml; charset=utf-8"}
+	xmlContentType   = []string{"application/xml; charset=utf-8"}
+	htmlContentType  = []string{"text/html; charset=utf-8"}
+	plainContentType = []string{"text/plain; charset=utf-8"}
 )
 
 // Writes the content type to the response header

@@ -3,6 +3,7 @@ package binding
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"io"
 	"net/http"
 )
@@ -14,7 +15,12 @@ func (x xmlBinding) Name() string {
 }
 
 func (x xmlBinding) Bind(r *http.Request, a any) error {
-	return x.decodeXML(r.Body, a)
+	buff, err := x.readBody(r)
+	if err != nil {
+		return err
+	}
+
+	return x.decodeXML(buff, a)
 }
 
 func (x xmlBinding) BindBody(b []byte, a any) error {
@@ -29,4 +35,20 @@ func (x xmlBinding) decodeXML(r io.Reader, a any) error {
 	}
 
 	return validate(a)
+}
+
+func (x xmlBinding) readBody(r *http.Request) (*bytes.Buffer, error) {
+	if r.Body == nil {
+		return nil, errors.New("invalid request")
+	}
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	buff := bytes.NewBuffer(b)
+	r.Body = io.NopCloser(buff)
+	n := bytes.NewBuffer(b)
+	return n, nil
 }

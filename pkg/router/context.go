@@ -2,7 +2,9 @@ package router
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"mime/multipart"
@@ -16,6 +18,8 @@ import (
 
 	"github.com/joseph-beck/routey/pkg/binding"
 	errs "github.com/joseph-beck/routey/pkg/error"
+	"github.com/pelletier/go-toml/v2"
+	"gopkg.in/yaml.v3"
 )
 
 // A Context provides
@@ -243,15 +247,69 @@ func (c *Context) RenderBytes(s int, b []byte) {
 	}
 }
 
+// Render a string with optional values
+func (c *Context) String(s int, f string, v ...any) {
+	writeContentType(c.writer, plainContentType)
+
+	if len(v) > 0 {
+		r := fmt.Sprintf(f, v)
+		c.RenderBytes(s, []byte(r))
+		return
+	}
+
+	c.RenderBytes(s, []byte(f))
+}
+
 // Render response in a JSON format from a body
 func (c *Context) JSON(s int, b any) {
 	writeContentType(c.writer, jsonContentType)
+
 	j, err := json.Marshal(b)
 	if err != nil {
-		s = http.StatusBadRequest
+		c.Status(http.StatusBadRequest)
+		return
 	}
 
 	c.RenderBytes(s, j)
+}
+
+// Render XML
+func (c *Context) XML(s int, b any) {
+	writeContentType(c.writer, xmlContentType)
+
+	x, err := xml.Marshal(b)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	c.RenderBytes(s, x)
+}
+
+// Render YAML
+func (c *Context) YAML(s int, b any) {
+	writeContentType(c.writer, yamlContentType)
+
+	y, err := yaml.Marshal(b)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	c.RenderBytes(s, y)
+}
+
+// Render TOML
+func (c *Context) TOML(s int, b any) {
+	writeContentType(c.writer, tomlContentType)
+
+	t, err := toml.Marshal(b)
+	if err != nil {
+		c.Status(http.StatusBadRequest)
+		return
+	}
+
+	c.RenderBytes(s, t)
 }
 
 // Render HTML with a given file

@@ -2,6 +2,7 @@ package binding
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"net/http"
 
@@ -15,7 +16,12 @@ func (t tomlBinding) Name() string {
 }
 
 func (t tomlBinding) Bind(r *http.Request, a any) error {
-	return t.decodeToml(r.Body, a)
+	buff, err := t.readBody(r)
+	if err != nil {
+		return err
+	}
+
+	return t.decodeToml(buff, a)
 }
 
 func (t tomlBinding) BindBody(b []byte, a any) error {
@@ -31,4 +37,20 @@ func (t tomlBinding) decodeToml(r io.Reader, a any) error {
 	}
 
 	return decoder.Decode(a)
+}
+
+func (t tomlBinding) readBody(r *http.Request) (*bytes.Buffer, error) {
+	if r.Body == nil {
+		return nil, errors.New("invalid request")
+	}
+
+	b, err := io.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	buff := bytes.NewBuffer(b)
+	r.Body = io.NopCloser(buff)
+	n := bytes.NewBuffer(b)
+	return n, nil
 }
