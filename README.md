@@ -49,6 +49,20 @@ func main() {
 
 Please note that routes defined before others will have precedence, for example a route of /api/:id will have complete precedence over a route /api/ping even if the route /api/ping is called.
 
+```go
+func main() {
+    c := routey.Config{
+        Port:  ":3000",
+        Debug: true,
+        CORS:  false,
+    }
+
+    r := routey.New(c)
+}
+```
+
+Routey also has a few configuration options, and hopefully more to come in the future, that allow you to manipulate modes and the ports used.
+
 ### Using parameters
 
 ```go
@@ -114,6 +128,23 @@ func decorator(f routey.HandlerFunc) routey.HandlerFunc {
 ```
 
 Declaring a decorator function this way allows us to decorate decorator functions as well as more easily use dependency injection. They can be used for a variety of things, but commonly used in protecting our end points.
+
+### Adding Middleware
+
+```go
+func middleware() routey.MiddlewareFunc {
+    return (c *routey.Context) {
+        fmt.Println("I am middleware!")
+    }
+}
+
+func main() {
+    r := routey.New()
+    r.Use(middleware())
+}
+```
+
+Although Routey has more of an emphasis on using Decorators, Middleware is a great option for something you would like to use on all of your routes. It uses the same context as the Handler will use so values can even be communicated between the Middleware and Handler.
 
 ### Services
 
