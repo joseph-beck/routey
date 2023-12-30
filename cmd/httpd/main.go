@@ -49,6 +49,12 @@ func hello() routey.HandlerFunc {
 	}
 }
 
+func middleware() routey.MiddlewareFunc {
+	return func(c *routey.Context) {
+		fmt.Println("middleware")
+	}
+}
+
 func main() {
 	c := routey.Config{
 		Port:  ":3000",
@@ -56,6 +62,7 @@ func main() {
 		CORS:  false,
 	}
 	r := routey.New(c)
+	r.Use(middleware())
 	r.Add(routey.Get, "/api/health", "", health(), nil)
 	r.Add(routey.Get, "/api/ping", "", ping(), nil)
 	r.Add(routey.Get, "/api/hello", "", hello(), nil)

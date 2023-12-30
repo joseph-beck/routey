@@ -204,11 +204,6 @@ func (c *Context) GetHeader(k string) string {
 	return v
 }
 
-// Get the path of the context
-func (c *Context) Path() string {
-	return c.route.Path + c.route.Params
-}
-
 // Get the route of the matched route
 func (c *Context) Route() *Route {
 	if c.route == nil {
@@ -216,6 +211,21 @@ func (c *Context) Route() *Route {
 	}
 
 	return c.route.Copy()
+}
+
+// Get the path of the context
+func (c *Context) Path() string {
+	return c.route.Path + c.route.Params
+}
+
+// Get the Handler of the context
+func (c *Context) Handler() HandlerFunc {
+	return c.route.HandlerFunc
+}
+
+// Get the Decorator of the context
+func (c *Context) Decorator() DecoratorFunc {
+	return c.route.DecoratorFunc
 }
 
 // Has the context been aborted?

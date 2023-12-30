@@ -30,8 +30,9 @@ import (
 //
 //   - funcMap: templates.FuncMap
 type App struct {
-	routes []Route
-	port   string
+	routes     []Route
+	middleware []MiddlewareFunc
+	port       string
 
 	logger    *logrus.Logger
 	debugMode bool
@@ -75,6 +76,18 @@ func New(c ...Config) *App {
 	}
 
 	return &a
+}
+
+func (a *App) Use(m ...MiddlewareFunc) {
+	if a.middleware == nil {
+		a.middleware = make([]MiddlewareFunc, 0)
+	}
+
+	if len(m) <= 0 {
+		return
+	}
+
+	a.middleware = append(a.middleware, m...)
 }
 
 // Adds a Route to the App
@@ -250,6 +263,12 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		m := e.Match(c)
 		if !m {
 			continue
+		}
+
+		if len(a.middleware) > 0 {
+			for _, f := range a.middleware {
+				f(c)
+			}
 		}
 
 		if e.DecoratorFunc == nil {

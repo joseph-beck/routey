@@ -19,3 +19,11 @@ func Wrap(f http.HandlerFunc) HandlerFunc {
 		f(c.writer, c.request)
 	}
 }
+
+// Middleware function, run before every request
+type MiddlewareFunc func(c *Context)
+
+// Serves the middleware function
+func (m MiddlewareFunc) Serve(c *Context) {
+	m(c)
+}
