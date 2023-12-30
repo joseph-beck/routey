@@ -31,8 +31,21 @@ func ping() routey.HandlerFunc {
 		var t Thing
 		c.ShouldBindJSON(&t)
 		fmt.Println(t)
+		p := c.Protocol()
 
-		c.Render(http.StatusOK, "pong")
+		c.Render(http.StatusOK, "pong "+p)
+	}
+}
+
+func hello() routey.HandlerFunc {
+	return func(c *routey.Context) {
+		b, err := c.Body()
+		if err != nil {
+			fmt.Println(err)
+		}
+		fmt.Println(string(b) + "\nbody")
+
+		c.Status(http.StatusOK)
 	}
 }
 
@@ -45,5 +58,6 @@ func main() {
 	r := routey.New(c)
 	r.Add(routey.Get, "/api/health", "", health(), nil)
 	r.Add(routey.Get, "/api/ping", "", ping(), nil)
+	r.Add(routey.Get, "/api/hello", "", hello(), nil)
 	r.Run()
 }

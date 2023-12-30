@@ -239,12 +239,12 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for _, e := range a.routes {
 		c := &Context{
-			app: a,
+			app:   a,
+			route: &e,
 
 			writer:  w,
 			request: r,
 			state:   Healthy,
-			path:    e.Path + e.Params,
 		}
 
 		m := e.Match(c)

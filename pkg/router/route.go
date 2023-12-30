@@ -66,3 +66,18 @@ func (r *Route) Format() error {
 
 	return nil
 }
+
+// Copy the route
+func (r *Route) Copy() *Route {
+	return &Route{
+		Path:          r.Path,
+		Params:        r.Params,
+		Method:        r.Method,
+		HandlerFunc:   r.HandlerFunc,
+		DecoratorFunc: r.DecoratorFunc,
+
+		regexp:    r.regexp,
+		formatted: r.formatted,
+		rawPath:   r.rawPath,
+	}
+}

@@ -1,6 +1,7 @@
 package router
 
 import (
+	"bytes"
 	"encoding/json"
 	"encoding/xml"
 	"errors"
@@ -34,13 +35,13 @@ import (
 //
 //   - queryCached: has the queryCache been made?
 type Context struct {
-	app *App
+	app   *App
+	route *Route
 
 	writer  http.ResponseWriter
 	request *http.Request
 	params  map[string]string
 	state   State
-	path    string
 	values  map[string]any
 	mu      sync.Mutex
 
@@ -51,10 +52,10 @@ type Context struct {
 // Reset the current Context
 func (c *Context) Reset() {
 	c.app = nil
+	c.route = nil
 
 	c.params = nil
 	c.state = Healthy
-	c.path = ""
 	c.values = nil
 	c.mu = sync.Mutex{}
 
@@ -65,13 +66,13 @@ func (c *Context) Reset() {
 // Copy the current Context and give a pointer to the copy
 func (c *Context) Copy() *Context {
 	return &Context{
-		app: c.app,
+		app:   c.app,
+		route: c.route,
 
 		writer:  c.writer,
 		request: c.request,
 		params:  c.params,
 		state:   c.state,
-		path:    c.path,
 		values:  c.values,
 		mu:      sync.Mutex{},
 
@@ -132,6 +133,29 @@ func (c *Context) MustGet(k string) (any, error) {
 	return v, nil
 }
 
+// Get the body of the request
+func (c *Context) Body() ([]byte, error) {
+	if c.request.Body == nil {
+		return nil, errors.New("empty body")
+	}
+
+	b, err := io.ReadAll(c.request.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	buff := bytes.NewBuffer(b)
+	c.request.Body = io.NopCloser(buff)
+	n := bytes.NewBuffer(b)
+
+	return n.Bytes(), nil
+}
+
+// Get the method of the route
+func (c *Context) Method() Method {
+	return c.route.Method
+}
+
 // Log an error to console
 func (c *Context) Error(err errs.Error) {
 	if err.Error == nil {
@@ -182,9 +206,19 @@ func (c *Context) GetHeader(k string) string {
 
 // Get the path of the context
 func (c *Context) Path() string {
-	return c.path
+	return c.route.Path + c.route.Params
 }
 
+// Get the route of the matched route
+func (c *Context) Route() *Route {
+	if c.route == nil {
+		return nil
+	}
+
+	return c.route.Copy()
+}
+
+// Has the context been aborted?
 func (c *Context) Aborted() bool {
 	return c.state == Aborted
 }
@@ -405,6 +439,7 @@ func (c *Context) Param(k string) (string, error) {
 	if !f {
 		return "", errors.New("key not found")
 	}
+
 	return p, nil
 }
 
@@ -419,7 +454,43 @@ func (c *Context) ParamInt(k string) (int, error) {
 	if err != nil {
 		return 0, err
 	}
+
 	return i, nil
+}
+
+// Get a float value from the params
+func (c *Context) ParamFloat(k string) (float64, error) {
+	p, f := c.params[k]
+	if !f {
+		return 0, errors.New("key not found")
+	}
+
+	v, err := strconv.ParseFloat(p, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return v, nil
+}
+
+// Get a boolean value from the params
+func (c *Context) ParamBool(k string) (bool, error) {
+	p, f := c.params[k]
+	if !f {
+		return false, errors.New("key not found")
+	}
+
+	b, err := strconv.ParseBool(p)
+	if err != nil {
+		return false, err
+	}
+
+	return b, nil
+}
+
+// Get all of the params of the request
+func (c *Context) ParamsAll() (map[string]string, error) {
+	return c.params, nil
 }
 
 // Get the query cache
@@ -459,6 +530,52 @@ func (c *Context) QueryInt(k string) (int, error) {
 	return i, nil
 }
 
+// Get a float value from the query
+func (c *Context) QueryFloat(k string) (float64, error) {
+	c.getQueryCache()
+	v := c.queryCache[k]
+	if len(v) < 1 {
+		return 0, errors.Join(errs.QueryError.Error, errors.New("unable to find "+k))
+	}
+
+	f, err := strconv.ParseFloat(v[0], 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return f, nil
+}
+
+// Get a boolean value from the query
+func (c *Context) QueryBool(k string) (bool, error) {
+	c.getQueryCache()
+	v := c.queryCache[k]
+	if len(v) < 1 {
+		return false, errors.Join(errs.QueryError.Error, errors.New("unable to find "+k))
+	}
+
+	b, err := strconv.ParseBool(v[0])
+	if err != nil {
+		return false, err
+	}
+
+	return b, nil
+}
+
+// Get all the queries from the request
+func (c *Context) QueryAll() (map[string]string, error) {
+	c.getQueryCache()
+	r := make(map[string]string)
+
+	for k, v := range c.queryCache {
+		if len(v) > 0 {
+			r[k] = v[0]
+		}
+	}
+
+	return r, nil
+}
+
 // Get the IP off the requester
 func (c *Context) RequestAddress() (string, error) {
 	h := c.request.Header.Get("X-Forwarded-For")
@@ -473,6 +590,20 @@ func (c *Context) RequestAddress() (string, error) {
 	}
 
 	return a[0], nil
+}
+
+// Is the request secure?
+func (c *Context) Secure() bool {
+	return c.Protocol() == "https"
+}
+
+// Get the protocol used by the request
+func (c *Context) Protocol() string {
+	if c.request.TLS == nil {
+		return "http"
+	}
+
+	return "https"
 }
 
 // Using the provided Binder, binds the context body with the a any
