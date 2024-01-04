@@ -15,7 +15,7 @@ $ go get -u github.com/joseph-beck/routey
 
 ```go
 import (
-    routey github.com/joseph-beck/routey/pkg/router
+    route "github.com/joseph-beck/routey/pkg/router"
 )
 ```
 
