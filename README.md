@@ -1,3 +1,8 @@
+![GitHub go.mod Go version (subdirectory of monorepo)](https://img.shields.io/github/go-mod/go-version/joseph-beck/routey) 
+![GitHub License](https://img.shields.io/github/license/joseph-beck/routey)
+![GitHub release (with filter)](https://img.shields.io/github/v/release/joseph-beck/routey)
+![GitHub Workflow Status (with event)](https://img.shields.io/github/actions/workflow/status/joseph-beck/routey/.github%2Fworkflows%2Fgo.yml)
+
 # routey
 
 An extremely simple Go HTTP Router made for fun! This was heavily inspired by gin.
