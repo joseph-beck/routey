@@ -27,3 +27,6 @@ type MiddlewareFunc func(c *Context)
 func (m MiddlewareFunc) Serve(c *Context) {
 	m(c)
 }
+
+// Func for shutting down the router
+type ShutdownFunc func()

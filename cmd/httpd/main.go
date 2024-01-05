@@ -55,6 +55,12 @@ func middleware() routey.MiddlewareFunc {
 	}
 }
 
+func shutdown() routey.ShutdownFunc {
+	return func() {
+		fmt.Println("shutting down")
+	}
+}
+
 func main() {
 	c := routey.Config{
 		Port:  ":3000",
@@ -66,5 +72,6 @@ func main() {
 	r.Add(routey.Get, "/api/health", "", health(), nil)
 	r.Add(routey.Get, "/api/ping", "", ping(), nil)
 	r.Add(routey.Get, "/api/hello", "", hello(), nil)
+	go r.Shutdown(shutdown())
 	r.Run()
 }

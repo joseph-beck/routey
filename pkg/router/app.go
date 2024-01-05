@@ -321,7 +321,7 @@ func (a *App) Run() {
 }
 
 // Shutdown the App, should be ran as go Shutdown()
-func (a *App) Shutdown() {
+func (a *App) Shutdown(f ...ShutdownFunc) {
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
@@ -333,6 +333,12 @@ func (a *App) Shutdown() {
 	}).Info("Closing app...")
 
 	// Closing down stuff
+
+	if len(f) > 0 {
+		for _, e := range f {
+			e()
+		}
+	}
 
 	a.logger.WithFields(logrus.Fields{
 		"State": "Exit",
