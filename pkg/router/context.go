@@ -298,7 +298,7 @@ func (c *Context) String(s int, f string, v ...any) {
 	writeContentType(c.writer, plainContentType)
 
 	if len(v) > 0 {
-		r := fmt.Sprintf(f, v)
+		r := fmt.Sprintf(f, v...)
 		c.RenderBytes(s, []byte(r))
 		return
 	}
@@ -501,7 +501,7 @@ func (c *Context) ParamBool(k string) (bool, error) {
 }
 
 // Get all of the params of the request
-func (c *Context) ParamsAll() (map[string]string, error) {
+func (c *Context) ParamAll() (map[string]string, error) {
 	return c.params, nil
 }
 
