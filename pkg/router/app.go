@@ -231,7 +231,7 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		r := recover()
 		if r != nil {
 			a.logger.WithFields(logrus.Fields{
-				"Error": "Panic",
+				"ERROR": "Panic",
 			}).Error(r)
 			http.Error(w, "Oh Dear", http.StatusInternalServerError)
 		}
@@ -273,11 +273,11 @@ func (a *App) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if e.DecoratorFunc == nil {
 			e.HandlerFunc.Serve(c)
-			logRequest(a.logger, e)
+			logRequest(a.logger, e, c.status)
 			return
 		}
 		e.DecoratorFunc(e.HandlerFunc).Serve(c)
-		logRequest(a.logger, e)
+		logRequest(a.logger, e, c.status)
 		return
 	}
 
@@ -303,11 +303,11 @@ func (a *App) Run() {
 	}
 
 	a.logger.WithFields(logrus.Fields{
-		"State": "Loading",
+		"STATE": "Loading",
 	}).Info("Loading app...")
 
 	a.logger.WithFields(logrus.Fields{
-		"State": "Routing",
+		"STATE": "Routing",
 	}).Info(fmt.Sprintf("Serving %d routes, on port %s", len(a.routes), a.port))
 
 	if a.debugMode {
@@ -329,7 +329,7 @@ func (a *App) Shutdown(f ...ShutdownFunc) {
 	fmt.Print("\r")
 
 	a.logger.WithFields(logrus.Fields{
-		"State": "Closing",
+		"STATE": "Closing",
 	}).Info("Closing app...")
 
 	// Closing down stuff
@@ -341,36 +341,36 @@ func (a *App) Shutdown(f ...ShutdownFunc) {
 	}
 
 	a.logger.WithFields(logrus.Fields{
-		"State": "Exit",
+		"STATE": "Exit",
 	}).Info("Closed app")
 
 	os.Exit(0)
 }
 
 // Log a request with info
-func logRequest(l *logrus.Logger, e Route) {
+func logRequest(l *logrus.Logger, e Route, s int) {
 	l.WithFields(logrus.Fields{
-		"Request": e.Method.String(),
-	}).Info(e.Path + e.Params)
+		"STATUS": s,
+	}).Info(fmt.Sprintf("%s: %s%s", e.Method.String(), e.Path, e.Params))
 }
 
 // Log a route that is being used
 func logRoute(l *logrus.Logger, e Route) {
 	l.WithFields(logrus.Fields{
-		"Route": e.Method.String(),
+		"ROUTE": e.Method.String(),
 	}).Info("added route " + e.Path + e.Params)
 }
 
 // Log error
 func logError(l *logrus.Logger, m string, v string) {
 	l.WithFields(logrus.Fields{
-		"Error": v,
+		"ERROR": v,
 	}).Error(m)
 }
 
 // Log a warning
 func logWarn(l *logrus.Logger, m string, v string) {
 	l.WithFields(logrus.Fields{
-		"Warn": v,
+		"WARN": v,
 	}).Warn(m)
 }

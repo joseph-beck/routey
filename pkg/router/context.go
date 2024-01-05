@@ -42,6 +42,7 @@ type Context struct {
 	request *http.Request
 	params  map[string]string
 	state   State
+	status  int
 	values  map[string]any
 	mu      sync.Mutex
 
@@ -252,6 +253,7 @@ func (c *Context) AbortWithError(s int, e error) {
 
 // Respond with just a status
 func (c *Context) Status(s int) {
+	c.status = s
 	c.writer.WriteHeader(s)
 }
 
