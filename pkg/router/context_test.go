@@ -7,8 +7,8 @@ import (
 )
 
 var MockRoute = Route{
-	Path:          "/mock/root/",
-	Params:        ":mock",
+	Path:          "/mock/root",
+	Params:        "/:mock",
 	Method:        Get,
 	HandlerFunc:   MockHandler(),
 	DecoratorFunc: MockDecorator(),
