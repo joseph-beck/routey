@@ -1,4 +1,5 @@
 SWAG ?= swag
+SWAGFMT ?= swag fmt
 GO ?= go
 GOFMT ?= gofmt "-s"
 GOFILES := $(shell find . -name "*.go")
@@ -23,6 +24,7 @@ clean:
 
 fmt:
 	$(GOFMT) -w $(GOFILES)
+	$(SWAGFMT)
 
 test:
 	$(GO) clean -testcache

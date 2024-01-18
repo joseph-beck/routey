@@ -10,11 +10,12 @@ import (
 )
 
 // health godoc
-// @Summary      API Health
-// @Description  Get the Health of the API
-// @Tags         health
-// @Success      200
-// @Router       /api/health [get]
+//
+//	@Summary		API Health
+//	@Description	Get the Health of the API
+//	@Tags			health
+//	@Success		200
+//	@Router			/api/health [get]
 func health() routey.HandlerFunc {
 	return func(c *routey.Context) {
 		c.Render(http.StatusOK, "health")
@@ -22,12 +23,13 @@ func health() routey.HandlerFunc {
 }
 
 // ping godoc
-// @Summary      API Ping
-// @Description  Ping the API and receive a JSON response
-// @Tags         ping
-// @Produce 	 json
-// @Success      200
-// @Router       /api/ping [get]
+//
+//	@Summary		API Ping
+//	@Description	Ping the API and receive a JSON response
+//	@Tags			ping
+//	@Produce		json
+//	@Success		200
+//	@Router			/api/ping [get]
 func ping() routey.HandlerFunc {
 	type Thing struct {
 		Name  string `json:"name"`
@@ -53,11 +55,12 @@ func ping() routey.HandlerFunc {
 }
 
 // hello godoc
-// @Summary      API Hello
-// @Description  Say hello to the API
-// @Tags         health
-// @Success      200
-// @Router       /api/hello [get]
+//
+//	@Summary		API Hello
+//	@Description	Say hello to the API
+//	@Tags			health
+//	@Success		200
+//	@Router			/api/hello [get]
 func hello() routey.HandlerFunc {
 	return func(c *routey.Context) {
 		b, err := c.Body()
@@ -82,15 +85,15 @@ func shutdown() routey.ShutdownFunc {
 	}
 }
 
-// @title routey
-// @version 0.0.1
-// @description routey docs tester.
-// @termsOfService http://swagger.io/terms/
+//	@title			routey
+//	@version		0.0.1
+//	@description	routey docs tester.
+//	@termsOfService	http://swagger.io/terms/
 
-// @license.name MIT
+//	@license.name	MIT
 
-// @host localhost:3000
-// @BasePath /api/v1
+// @host		localhost:3000
+// @BasePath	/api/v1
 func main() {
 	c := routey.Config{
 		Port:  ":3000",
