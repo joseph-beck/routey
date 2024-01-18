@@ -9,12 +9,25 @@ import (
 	swaggerFiles "github.com/swaggo/files"
 )
 
+// health godoc
+// @Summary      API Health
+// @Description  Get the Health of the API
+// @Tags         health
+// @Success      200
+// @Router       /api/health [get]
 func health() routey.HandlerFunc {
 	return func(c *routey.Context) {
 		c.Render(http.StatusOK, "health")
 	}
 }
 
+// ping godoc
+// @Summary      API Ping
+// @Description  Ping the API and receive a JSON response
+// @Tags         ping
+// @Produce 	 json
+// @Success      200
+// @Router       /api/ping [get]
 func ping() routey.HandlerFunc {
 	type Thing struct {
 		Name  string `json:"name"`
@@ -39,6 +52,12 @@ func ping() routey.HandlerFunc {
 	}
 }
 
+// hello godoc
+// @Summary      API Hello
+// @Description  Say hello to the API
+// @Tags         health
+// @Success      200
+// @Router       /api/hello [get]
 func hello() routey.HandlerFunc {
 	return func(c *routey.Context) {
 		b, err := c.Body()
@@ -53,7 +72,7 @@ func hello() routey.HandlerFunc {
 
 func middleware() routey.MiddlewareFunc {
 	return func(c *routey.Context) {
-		fmt.Println("middleware")
+
 	}
 }
 
@@ -65,7 +84,8 @@ func shutdown() routey.ShutdownFunc {
 
 // @title routey
 // @version 0.0.1
-// @description routey docs teser.
+// @description routey docs tester.
+// @termsOfService http://swagger.io/terms/
 
 // @license.name MIT
 
@@ -79,8 +99,8 @@ func main() {
 	}
 	r := routey.New(c)
 	r.Use(middleware())
-	url := swaggy.URL("docs/swagger.json")
-	r.Docs("/docs/*", swaggy.WrapHandler(swaggerFiles.Handler, url))
+	config := swaggy.URL("/docs/swagger.json")
+	r.Docs("/docs/*", swaggy.WrapHandler(swaggerFiles.Handler, config))
 	r.Add(routey.Get, "/api/health", "", health(), nil)
 	r.Add(routey.Get, "/api/ping", "", ping(), nil)
 	r.Add(routey.Get, "/api/hello", "", hello(), nil)

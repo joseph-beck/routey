@@ -1,6 +1,7 @@
 package swagger
 
 import (
+	"fmt"
 	htmlTemplate "html/template"
 	"net/http"
 	"os"
@@ -139,7 +140,7 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) routey.HandlerFu
 	js, _ := textTemplate.New("swagger_index.js").Parse(swaggerJSTpl)
 	css, _ := textTemplate.New("swagger_index.css").Parse(swaggerStyleTpl)
 
-	var matcher = regexp.MustCompile(`(.*)(index\.html|index\.css|swagger-initializer\.js|doc\.json|favicon-16x16\.png|favicon-32x32\.png|/oauth2-redirect\.html|swagger-ui\.css|swagger-ui\.css\.map|swagger-ui\.js|swagger-ui\.js\.map|swagger-ui-bundle\.js|swagger-ui-bundle\.js\.map|swagger-ui-standalone-preset\.js|swagger-ui-standalone-preset\.js\.map)[?|.]*`)
+	var matcher = regexp.MustCompile(`(.*)(index\.html|index\.css|swagger-initializer\.js|doc\.json|favicon-16x16\.png|favicon-32x32\.png|/oauth2-redirect\.html|swagger-ui\.css|swagger-ui\.css\.map|swagger-ui\.js|swagger-ui\.js\.map|swagger-ui-bundle\.js|swagger-ui-bundle\.js\.map|docs\.json|swagger\.json|swagger-ui-standalone-preset\.js|swagger-ui-standalone-preset\.js\.map)[?|.]*`)
 
 	return func(c *routey.Context) {
 		// TEMP
@@ -149,8 +150,10 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) routey.HandlerFu
 		}
 		matches := matcher.FindStringSubmatch(u)
 
+		fmt.Println("Request URI:", c.RequestURI())
+
 		if len(matches) != 3 {
-			c.Render(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+			c.Render(http.StatusNotFound, http.StatusText(http.StatusNotFound)+c.RequestURI())
 			return
 		}
 
@@ -158,6 +161,8 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) routey.HandlerFu
 		once.Do(func() {
 			handler.Prefix = matches[1]
 		})
+
+		fmt.Println(path)
 
 		switch filepath.Ext(path) {
 		case ".html":
@@ -183,7 +188,6 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) routey.HandlerFu
 			doc, err := swag.ReadDoc(config.InstanceName)
 			if err != nil {
 				c.AbortWithStatus(http.StatusInternalServerError)
-
 				return
 			}
 
