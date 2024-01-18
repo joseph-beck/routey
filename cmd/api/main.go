@@ -79,7 +79,7 @@ func main() {
 	}
 	r := routey.New(c)
 	r.Use(middleware())
-	url := swaggy.URL("http://localhost:3000/docs/doc.json")
+	url := swaggy.URL("docs/swagger.json")
 	r.Docs("/docs/*", swaggy.WrapHandler(swaggerFiles.Handler, url))
 	r.Add(routey.Get, "/api/health", "", health(), nil)
 	r.Add(routey.Get, "/api/ping", "", ping(), nil)

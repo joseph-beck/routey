@@ -2,6 +2,7 @@ package router
 
 import (
 	"regexp"
+	"strings"
 )
 
 // Route struct
@@ -36,6 +37,7 @@ func (r *Route) Match(c *Context) bool {
 		return false
 	}
 
+	r.rawPath = strings.Replace(r.rawPath, "*", ".*", -1)
 	r.regexp = regexp.MustCompile("^" + r.rawPath + "$")
 	match := r.regexp.FindStringSubmatch(c.request.URL.Path)
 	if match == nil {

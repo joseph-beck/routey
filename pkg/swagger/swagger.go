@@ -1,7 +1,6 @@
 package swagger
 
 import (
-	"fmt"
 	htmlTemplate "html/template"
 	"net/http"
 	"os"
@@ -107,7 +106,7 @@ func Oauth2DefaultClientID(oauth2DefaultClientID string) func(*Config) {
 // WrapHandler wraps `http.Handler` into `routey.HandlerFunc`.
 func WrapHandler(handler *webdav.Handler, options ...func(*Config)) routey.HandlerFunc {
 	var config = Config{
-		URL:                      "doc.json",
+		URL:                      "swagger.json",
 		DocExpansion:             "list",
 		InstanceName:             swag.Name,
 		Title:                    "Swagger UI",
@@ -143,8 +142,12 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) routey.HandlerFu
 	var matcher = regexp.MustCompile(`(.*)(index\.html|index\.css|swagger-initializer\.js|doc\.json|favicon-16x16\.png|favicon-32x32\.png|/oauth2-redirect\.html|swagger-ui\.css|swagger-ui\.css\.map|swagger-ui\.js|swagger-ui\.js\.map|swagger-ui-bundle\.js|swagger-ui-bundle\.js\.map|swagger-ui-standalone-preset\.js|swagger-ui-standalone-preset\.js\.map)[?|.]*`)
 
 	return func(c *routey.Context) {
-		matches := matcher.FindStringSubmatch(c.RequestURI())
-		fmt.Println(c.RequestURI())
+		// TEMP
+		u := c.RequestURI()
+		if u == "/docs/" {
+			u = "/docs/index.html"
+		}
+		matches := matcher.FindStringSubmatch(u)
 
 		if len(matches) != 3 {
 			c.Render(http.StatusNotFound, http.StatusText(http.StatusNotFound))
