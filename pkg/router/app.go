@@ -108,6 +108,16 @@ func (a *App) Service(s Service) {
 	}
 }
 
+// Adds docs to the Router
+func (a *App) Docs(p string, h HandlerFunc) {
+	a.Route(Route{
+		Path:          p,
+		Method:        Get,
+		HandlerFunc:   h,
+		DecoratorFunc: nil,
+	})
+}
+
 // Add a Route with the method, path, params, handler and decorator
 func (a *App) Add(method Method, path string, params string, handler HandlerFunc, decorator DecoratorFunc) {
 	a.Route(Route{

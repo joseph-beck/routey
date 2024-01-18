@@ -1,3 +1,4 @@
+SWAG ?= swag
 GO ?= go
 GOFMT ?= gofmt "-s"
 GOFILES := $(shell find . -name "*.go")
@@ -8,6 +9,10 @@ all:
 
 http:
 	$(GO) run cmd/httpd/main.go
+
+api:
+	$(SWAG) i --dir ./cmd/api/
+	$(GO) run cmd/api/main.go
 
 build:
 	$(GO) build -o build/program/app cmd/httpd/main.go

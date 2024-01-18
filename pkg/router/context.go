@@ -173,16 +173,26 @@ func (c *Context) ErrorLog(err errs.Error) {
 	log.Println(err.String())
 }
 
-// Write a string
-func (c *Context) Write(s string) (int, error) {
+// WriteString a string
+func (c *Context) WriteString(s string) (int, error) {
 	b, err := c.writer.Write([]byte(s))
 	return b, err
 }
 
 // Write bytes
-func (c *Context) WriteBytes(body []byte) (int, error) {
+func (c *Context) Write(body []byte) (int, error) {
 	b, err := c.writer.Write(body)
 	return b, err
+}
+
+// Get a HTTP response writer
+func (c *Context) Writer() http.ResponseWriter {
+	return c.writer
+}
+
+// Get a HTTP response request
+func (c *Context) Request() *http.Request {
+	return c.request
 }
 
 // Add to the header of a response with a key and value
@@ -203,6 +213,10 @@ func (c *Context) Header(k string, v string) {
 func (c *Context) GetHeader(k string) string {
 	v := c.request.Header.Get(k)
 	return v
+}
+
+func (c *Context) RequestURI() string {
+	return c.request.RequestURI
 }
 
 // Get the route of the matched route
@@ -276,7 +290,7 @@ func (c *Context) Redirect(s int, l string) {
 func (c *Context) Render(s int, b string) {
 	c.Status(s)
 
-	_, err := c.Write(b)
+	_, err := c.WriteString(b)
 	if err != nil {
 		c.ErrorLog(errs.RenderError)
 		c.Abort()
@@ -287,7 +301,7 @@ func (c *Context) Render(s int, b string) {
 func (c *Context) RenderBytes(s int, b []byte) {
 	c.Status(s)
 
-	_, err := c.WriteBytes(b)
+	_, err := c.Write(b)
 	if err != nil {
 		c.ErrorLog(errs.RenderError)
 	}
