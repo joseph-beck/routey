@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	_ "github.com/joseph-beck/routey/docs"
 	routey "github.com/joseph-beck/routey/pkg/router"
 	swaggy "github.com/joseph-beck/routey/pkg/swagger"
 	swaggerFiles "github.com/swaggo/files"
@@ -93,7 +94,7 @@ func shutdown() routey.ShutdownFunc {
 //	@license.name	MIT
 
 // @host		localhost:3000
-// @BasePath	/api/v1
+// @BasePath	/
 func main() {
 	c := routey.Config{
 		Port:  ":3000",
@@ -102,7 +103,7 @@ func main() {
 	}
 	r := routey.New(c)
 	r.Use(middleware())
-	config := swaggy.URL("/docs/swagger.json")
+	config := swaggy.URL("/docs/docs.json")
 	r.Docs("/docs/*", swaggy.WrapHandler(swaggerFiles.Handler, config))
 	r.Add(routey.Get, "/api/health", "", health(), nil)
 	r.Add(routey.Get, "/api/ping", "", ping(), nil)
