@@ -2,9 +2,9 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 
 	routey "github.com/joseph-beck/routey/pkg/router"
+	"github.com/joseph-beck/routey/pkg/status"
 )
 
 func reverseString(input string) string {
@@ -28,7 +28,7 @@ func main() {
 		Method: routey.Get,
 		HandlerFunc: func(c *routey.Context) {
 			b := "<h1>Healthy</h1>"
-			c.Render(http.StatusOK, b)
+			c.Render(status.OK, b)
 		},
 		DecoratorFunc: func(f routey.HandlerFunc) routey.HandlerFunc {
 			return func(c *routey.Context) {
@@ -43,7 +43,7 @@ func main() {
 		Params: "",
 		Method: routey.Get,
 		HandlerFunc: func(c *routey.Context) {
-			c.Status(http.StatusBadRequest)
+			c.Status(status.BadRequest)
 		},
 		DecoratorFunc: nil,
 	})
@@ -65,10 +65,10 @@ func main() {
 		HandlerFunc: func(c *routey.Context) {
 			p, err := c.Param("string")
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				c.Status(status.BadRequest)
 				return
 			}
-			c.Render(http.StatusOK, p)
+			c.Render(status.OK, p)
 		},
 		DecoratorFunc: nil,
 	})
@@ -80,17 +80,17 @@ func main() {
 		HandlerFunc: func(c *routey.Context) {
 			o, err := c.ParamInt("one")
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				c.Status(status.BadRequest)
 				return
 			}
 			t, err := c.ParamInt("two")
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				c.Status(status.BadRequest)
 				return
 			}
 			a := o + t
 
-			c.Render(http.StatusOK, fmt.Sprintf("%d", a))
+			c.Render(status.OK, fmt.Sprintf("%d", a))
 		},
 		DecoratorFunc: nil,
 	})
@@ -110,7 +110,7 @@ func main() {
 				Body: "these are a lot of words.",
 			}
 
-			c.JSON(http.StatusOK, j)
+			c.JSON(status.OK, j)
 		},
 		DecoratorFunc: nil,
 	})
@@ -122,11 +122,11 @@ func main() {
 		HandlerFunc: func(c *routey.Context) {
 			w, err := c.Query("word")
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				c.Status(status.BadRequest)
 				return
 			}
 
-			c.Render(http.StatusOK, w)
+			c.Render(status.OK, w)
 		},
 		DecoratorFunc: nil,
 	})
@@ -144,12 +144,12 @@ func main() {
 			var o obj
 			err := c.ShouldBindJSON(&o)
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				c.Status(status.BadRequest)
 			}
 
 			fmt.Printf("%s name \n%s email\n", o.Name, o.Email)
 
-			c.JSON(http.StatusOK, o)
+			c.JSON(status.OK, o)
 		},
 		DecoratorFunc: nil,
 	})
@@ -161,12 +161,12 @@ func main() {
 		func(c *routey.Context) {
 			t, err := c.Param("text")
 			if err != nil {
-				c.Status(http.StatusBadRequest)
+				c.Status(status.BadRequest)
 				return
 			}
 			r, err := c.QueryInt("repeat")
 			if err != nil {
-				c.Render(http.StatusOK, reverseString(t))
+				c.Render(status.OK, reverseString(t))
 				return
 			}
 
@@ -174,7 +174,7 @@ func main() {
 			for i := 0; i < r; i++ {
 				b += reverseString(t)
 			}
-			c.Render(http.StatusOK, b)
+			c.Render(status.OK, b)
 		},
 		nil,
 	)
@@ -186,7 +186,7 @@ func main() {
 		"",
 		func(c *routey.Context) {
 			c.HTML(
-				http.StatusOK,
+				status.OK,
 				"index.html",
 				routey.M{
 					"title": "Main website",
@@ -201,7 +201,7 @@ func main() {
 		"",
 		func(c *routey.Context) {
 			c.HTML(
-				http.StatusOK,
+				status.OK,
 				"hello.html",
 				nil,
 			)
@@ -214,7 +214,7 @@ func main() {
 		"/redirect",
 		"",
 		func(c *routey.Context) {
-			c.Redirect(http.StatusMovedPermanently, "https://www.google.com")
+			c.Redirect(status.MovedPermanently, "https://www.google.com")
 		},
 		nil,
 	)
