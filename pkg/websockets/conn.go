@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
 	"runtime/debug"
 	"strconv"
@@ -16,7 +17,8 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func defaultRecover(c *WSConn) {
+// Default recovery function, just returns the stack trace
+func defaultRecover(c *Conn) {
 	if err := recover(); err != nil {
 		_, _ = os.Stderr.WriteString(fmt.Sprintf("panic: %v\n%s\n", err, debug.Stack())) //nolint:errcheck // This will never fail
 
@@ -27,7 +29,8 @@ func defaultRecover(c *WSConn) {
 	}
 }
 
-type WSConn struct {
+// WebSocket connection
+type Conn struct {
 	socket  *websocket.Conn
 	params  map[string]string
 	cookies map[string]string
@@ -36,12 +39,36 @@ type WSConn struct {
 	ip      string
 }
 
-func New(c ...Config) *WSConn {
-	return &WSConn{}
+// Creates a new handler function of a given handler function for a WebSocket handler
+func New(h func(*Conn), c ...Config) routey.HandlerFunc {
+	cfg := Default()
+	if len(c) > 0 {
+		cfg = c[0]
+	}
+
+	if len(cfg.Origins) == 0 {
+		cfg.Origins = []string{}
+	}
+
+	if cfg.ReadBufferSize == 0 {
+		cfg.ReadBufferSize = 1024
+	}
+
+	if cfg.WriteBufferSize == 0 {
+		cfg.WriteBufferSize = 1024
+	}
+
+	if cfg.RecoverHandler == nil {
+		cfg.RecoverHandler = defaultRecover
+	}
+
+	return func(c *routey.Context) {
+		c.Status(http.StatusOK)
+	}
 }
 
 // Get a param from the ws connection
-func (c *WSConn) Params(k string, d ...string) (string, error) {
+func (c *Conn) Params(k string, d ...string) (string, error) {
 	v, ok := c.params[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -55,7 +82,7 @@ func (c *WSConn) Params(k string, d ...string) (string, error) {
 }
 
 // Get a param of type int from the ws connection
-func (c *WSConn) ParamsInt(k string, d ...int) (int, error) {
+func (c *Conn) ParamsInt(k string, d ...int) (int, error) {
 	v, ok := c.params[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -74,7 +101,7 @@ func (c *WSConn) ParamsInt(k string, d ...int) (int, error) {
 }
 
 // Get a param of type float from the ws connection
-func (c *WSConn) ParamsFloat(k string, d ...float64) (float64, error) {
+func (c *Conn) ParamsFloat(k string, d ...float64) (float64, error) {
 	v, ok := c.params[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -92,7 +119,8 @@ func (c *WSConn) ParamsFloat(k string, d ...float64) (float64, error) {
 	return f, nil
 }
 
-func (c *WSConn) ParamsBool(k string, d ...bool) (bool, error) {
+// Get a param of type bool from the ws connection
+func (c *Conn) ParamsBool(k string, d ...bool) (bool, error) {
 	v, ok := c.params[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -110,7 +138,8 @@ func (c *WSConn) ParamsBool(k string, d ...bool) (bool, error) {
 	return b, nil
 }
 
-func (c *WSConn) Query(k string, d ...string) (string, error) {
+// Get a query from the ws connection
+func (c *Conn) Query(k string, d ...string) (string, error) {
 	v, ok := c.queries[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -123,7 +152,8 @@ func (c *WSConn) Query(k string, d ...string) (string, error) {
 	return v, nil
 }
 
-func (c *WSConn) QueryInt(k string, d ...int) (int, error) {
+// Get a query of type int from the ws connection
+func (c *Conn) QueryInt(k string, d ...int) (int, error) {
 	v, ok := c.queries[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -141,7 +171,8 @@ func (c *WSConn) QueryInt(k string, d ...int) (int, error) {
 	return i, nil
 }
 
-func (c *WSConn) QueryFloat(k string, d ...float64) (float64, error) {
+// Get a query of type float from the ws connection
+func (c *Conn) QueryFloat(k string, d ...float64) (float64, error) {
 	v, ok := c.queries[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -159,7 +190,8 @@ func (c *WSConn) QueryFloat(k string, d ...float64) (float64, error) {
 	return f, nil
 }
 
-func (c *WSConn) QueryBool(k string, d ...bool) (bool, error) {
+// Get a query of type bool from the ws connection
+func (c *Conn) QueryBool(k string, d ...bool) (bool, error) {
 	v, ok := c.queries[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -177,7 +209,8 @@ func (c *WSConn) QueryBool(k string, d ...bool) (bool, error) {
 	return b, nil
 }
 
-func (c *WSConn) Cookies(k string, d ...string) (string, error) {
+// Get the value of a cookie from the ws connection
+func (c *Conn) Cookies(k string, d ...string) (string, error) {
 	v, ok := c.cookies[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -190,7 +223,8 @@ func (c *WSConn) Cookies(k string, d ...string) (string, error) {
 	return v, nil
 }
 
-func (c *WSConn) Headers(k string, d ...string) (string, error) {
+// Get the value of a header from the ws connection
+func (c *Conn) Headers(k string, d ...string) (string, error) {
 	v, ok := c.headers[k]
 	if !ok && len(d) > 0 {
 		return d[0], nil
@@ -203,11 +237,13 @@ func (c *WSConn) Headers(k string, d ...string) (string, error) {
 	return v, nil
 }
 
-func (c *WSConn) IP() string {
+// Get the ip of the connection from the ws
+func (c *Conn) IP() string {
 	return c.ip
 }
 
-func (c *WSConn) Read(b []byte) error {
+// Read to a byte array from the
+func (c *Conn) Read(b []byte) error {
 	_, err := c.socket.Read(b)
 	if err != nil {
 		return err
@@ -216,17 +252,21 @@ func (c *WSConn) Read(b []byte) error {
 	return nil
 }
 
-func (c *WSConn) ReadMessage(m string) error {
+// Read a message into a reference
+func (c *Conn) ReadMessage(m string) error {
 	var d []byte
 	_, err := c.socket.Read(d)
 	if err != nil {
 		return err
 	}
 
+	m = string(d)
+
 	return nil
 }
 
-func (c *WSConn) ReadJSON(b any) error {
+// Read the value of the body into a JSON object
+func (c *Conn) ReadJSON(b any) error {
 	var d []byte
 	_, err := c.socket.Read(d)
 	if err != nil {
@@ -241,7 +281,8 @@ func (c *WSConn) ReadJSON(b any) error {
 	return nil
 }
 
-func (c *WSConn) ReadXML(b any) error {
+// Read the value of the body into an XML object
+func (c *Conn) ReadXML(b any) error {
 	var d []byte
 	_, err := c.socket.Read(d)
 	if err != nil {
@@ -256,7 +297,8 @@ func (c *WSConn) ReadXML(b any) error {
 	return nil
 }
 
-func (c *WSConn) ReadYAML(b any) error {
+// Read the value of the body into a YAML object
+func (c *Conn) ReadYAML(b any) error {
 	var d []byte
 	_, err := c.socket.Read(d)
 	if err != nil {
@@ -271,7 +313,8 @@ func (c *WSConn) ReadYAML(b any) error {
 	return nil
 }
 
-func (c *WSConn) ReadTOML(b any) error {
+// Read the value of the body into a TOML object
+func (c *Conn) ReadTOML(b any) error {
 	var d []byte
 	_, err := c.socket.Read(d)
 	if err != nil {
@@ -286,7 +329,8 @@ func (c *WSConn) ReadTOML(b any) error {
 	return nil
 }
 
-func (c *WSConn) Send(b []byte) error {
+// Send a byte array through the ws
+func (c *Conn) Send(b []byte) error {
 	_, err := c.socket.Write(b)
 	if err != nil {
 		return err
@@ -295,7 +339,8 @@ func (c *WSConn) Send(b []byte) error {
 	return nil
 }
 
-func (c *WSConn) SendMessage(m string) error {
+// Send a string message through the ws
+func (c *Conn) SendMessage(m string) error {
 	b := []byte(m)
 	_, err := c.socket.Write(b)
 	if err != nil {
@@ -305,7 +350,8 @@ func (c *WSConn) SendMessage(m string) error {
 	return nil
 }
 
-func (c *WSConn) SendJSON(b any) error {
+// Send a JSON object through the ws
+func (c *Conn) SendJSON(b any) error {
 	j, err := json.Marshal(b)
 	if err != nil {
 		return err
@@ -319,7 +365,8 @@ func (c *WSConn) SendJSON(b any) error {
 	return nil
 }
 
-func (c *WSConn) SendXML(b any) error {
+// Send an XML object through the ws
+func (c *Conn) SendXML(b any) error {
 	j, err := xml.Marshal(b)
 	if err != nil {
 		return err
@@ -333,7 +380,8 @@ func (c *WSConn) SendXML(b any) error {
 	return nil
 }
 
-func (c *WSConn) SendYAML(b any) error {
+// Send a YAML object through the ws
+func (c *Conn) SendYAML(b any) error {
 	j, err := yaml.Marshal(b)
 	if err != nil {
 		return err
@@ -347,7 +395,8 @@ func (c *WSConn) SendYAML(b any) error {
 	return nil
 }
 
-func (c *WSConn) SendTOML(b any) error {
+// Send a TOML object through the ws
+func (c *Conn) SendTOML(b any) error {
 	j, err := toml.Marshal(b)
 	if err != nil {
 		return err
@@ -361,7 +410,8 @@ func (c *WSConn) SendTOML(b any) error {
 	return nil
 }
 
-func (c *WSConn) Close() error {
+// Close the ws connection
+func (c *Conn) Close() error {
 	err := c.socket.Close()
 	if err != nil {
 		return err
