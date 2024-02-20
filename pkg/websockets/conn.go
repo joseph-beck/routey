@@ -1,6 +1,8 @@
 package websockets
 
 import (
+	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"os"
@@ -9,7 +11,9 @@ import (
 
 	"github.com/joseph-beck/routey/pkg/binding"
 	routey "github.com/joseph-beck/routey/pkg/router"
+	"github.com/pelletier/go-toml/v2"
 	"golang.org/x/net/websocket"
+	"gopkg.in/yaml.v3"
 )
 
 func defaultRecover(c *WSConn) {
@@ -36,6 +40,7 @@ func New(c ...Config) *WSConn {
 	return &WSConn{}
 }
 
+// Get a param from the ws connection
 func (c *WSConn) Params(k string, d ...string) (string, error) {
 	v, ok := c.params[k]
 	if !ok && len(d) > 0 {
@@ -49,6 +54,7 @@ func (c *WSConn) Params(k string, d ...string) (string, error) {
 	return v, nil
 }
 
+// Get a param of type int from the ws connection
 func (c *WSConn) ParamsInt(k string, d ...int) (int, error) {
 	v, ok := c.params[k]
 	if !ok && len(d) > 0 {
@@ -67,6 +73,7 @@ func (c *WSConn) ParamsInt(k string, d ...int) (int, error) {
 	return i, nil
 }
 
+// Get a param of type float from the ws connection
 func (c *WSConn) ParamsFloat(k string, d ...float64) (float64, error) {
 	v, ok := c.params[k]
 	if !ok && len(d) > 0 {
@@ -171,11 +178,29 @@ func (c *WSConn) QueryBool(k string, d ...bool) (bool, error) {
 }
 
 func (c *WSConn) Cookies(k string, d ...string) (string, error) {
-	return "", nil
+	v, ok := c.cookies[k]
+	if !ok && len(d) > 0 {
+		return d[0], nil
+	}
+
+	if !ok && len(d) <= 0 {
+		return "", errors.New("error, no params found, maybe give it a default?")
+	}
+
+	return v, nil
 }
 
 func (c *WSConn) Headers(k string, d ...string) (string, error) {
-	return "", nil
+	v, ok := c.headers[k]
+	if !ok && len(d) > 0 {
+		return d[0], nil
+	}
+
+	if !ok && len(d) <= 0 {
+		return "", errors.New("error, no params found, maybe give it a default?")
+	}
+
+	return v, nil
 }
 
 func (c *WSConn) IP() string {
@@ -183,6 +208,11 @@ func (c *WSConn) IP() string {
 }
 
 func (c *WSConn) Read(b []byte) error {
+	_, err := c.socket.Read(b)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -196,14 +226,59 @@ func (c *WSConn) ReadMessage(m string) error {
 	return nil
 }
 
-func (c *WSConn) ReadJSON(i interface{}) error {
+func (c *WSConn) ReadJSON(b any) error {
 	var d []byte
 	_, err := c.socket.Read(d)
 	if err != nil {
 		return err
 	}
 
-	err = binding.JSON.BindBody(d, i)
+	err = binding.JSON.BindBody(d, b)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *WSConn) ReadXML(b any) error {
+	var d []byte
+	_, err := c.socket.Read(d)
+	if err != nil {
+		return err
+	}
+
+	err = binding.XML.BindBody(d, b)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *WSConn) ReadYAML(b any) error {
+	var d []byte
+	_, err := c.socket.Read(d)
+	if err != nil {
+		return err
+	}
+
+	err = binding.YAML.BindBody(d, b)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *WSConn) ReadTOML(b any) error {
+	var d []byte
+	_, err := c.socket.Read(d)
+	if err != nil {
+		return err
+	}
+
+	err = binding.TOML.BindBody(d, b)
 	if err != nil {
 		return err
 	}
@@ -229,7 +304,60 @@ func (c *WSConn) SendMessage(m string) error {
 
 	return nil
 }
-func (c *WSConn) SendJSON(i interface{}) error {
+
+func (c *WSConn) SendJSON(b any) error {
+	j, err := json.Marshal(b)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.socket.Write(j)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *WSConn) SendXML(b any) error {
+	j, err := xml.Marshal(b)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.socket.Write(j)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *WSConn) SendYAML(b any) error {
+	j, err := yaml.Marshal(b)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.socket.Write(j)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *WSConn) SendTOML(b any) error {
+	j, err := toml.Marshal(b)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.socket.Write(j)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
