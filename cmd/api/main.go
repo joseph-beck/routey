@@ -103,7 +103,7 @@ func main() {
 	}
 	r := routey.New(c)
 	r.Use(middleware())
-	config := swaggy.URL("/docs/docs.json")
+	config := swaggy.URL("/docs/swagger.json")
 	r.Docs("/docs/*", swaggy.WrapHandler(swaggerFiles.Handler, config))
 	r.Add(routey.Get, "/api/health", "", health(), nil)
 	r.Add(routey.Get, "/api/ping", "", ping(), nil)

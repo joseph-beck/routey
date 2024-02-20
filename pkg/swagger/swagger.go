@@ -145,9 +145,6 @@ func CustomWrapHandler(config *Config, handler *webdav.Handler) routey.HandlerFu
 	return func(c *routey.Context) {
 		// TEMP
 		u := c.RequestURI()
-		if u == "/docs/" {
-			u = "/docs/index.html"
-		}
 		matches := matcher.FindStringSubmatch(u)
 
 		fmt.Println("Request URI:", c.RequestURI())
