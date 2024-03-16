@@ -2,14 +2,14 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 
 	routey "github.com/joseph-beck/routey/pkg/router"
+	"github.com/joseph-beck/routey/pkg/status"
 )
 
 func health() routey.HandlerFunc {
 	return func(c *routey.Context) {
-		c.Render(http.StatusOK, "health")
+		c.Render(status.OK, "health")
 	}
 }
 
@@ -33,7 +33,7 @@ func ping() routey.HandlerFunc {
 		fmt.Println(t)
 		p := c.Protocol()
 
-		c.Render(http.StatusOK, "pong "+p)
+		c.Render(status.OK, "pong "+p)
 	}
 }
 
@@ -45,7 +45,7 @@ func hello() routey.HandlerFunc {
 		}
 		fmt.Println(string(b) + "\nbody")
 
-		c.Status(http.StatusOK)
+		c.Status(status.OK)
 	}
 }
 
